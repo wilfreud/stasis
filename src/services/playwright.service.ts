@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import type { Browser } from "playwright";
 
-class BrowserManager {
+class BrowserManagerService {
   private browser: Browser | null = null;
 
   public async initBrowser() {
@@ -31,6 +31,15 @@ class BrowserManager {
     const browserInstance = await this.getBrowser();
     return await browserInstance?.newPage();
   }
+
+  public async renderPage(html: string): Promise<Buffer> {
+    console.log("Rendering page with HTML content...");
+    const page = await this.createPage();
+    if (!page) throw new Error("Failed to create a new page");
+
+    await page.setContent(html);
+    return await page.pdf({ format: "A5" });
+  }
 }
 
-export default BrowserManager;
+export default BrowserManagerService;
