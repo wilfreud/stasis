@@ -1,26 +1,29 @@
 {
-    "name": "pdf-generator",
-    "version": "1.0.0",
-    "type": "module",
-    "description": "A Playwright based PDF generator, with support for HBS file compilation",
-    "main": "index.js",
-    "scripts": {
-        "dev": "pnpm tsx --watch src/index.ts",
-        "format": "pnpm prettier --write src/**/*.ts"
-    },
-    "keywords": [],
-    "author": "Commodore <commodore64.dev@gmail.com>",
-    "license": "ISC",
-    "dependencies": {
-        "cors": "^2.8.5",
-        "express": "^5.1.0",
-        "helmet": "^8.1.0"
-    },
-    "devDependencies": {
-        "@types/express": "^5.0.2",
-        "@types/node": "^22.15.21",
-        "prettier": "^3.5.3",
-        "tsx": "^4.19.4",
-        "typescript": "^5.8.3"
-    }
+  "name": "pdf-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A Playwright based PDF generator, with support for HBS file compilation",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm tsx --watch src/index.ts",
+    "format": "pnpm prettier --write src/**/*.ts",
+    "build": "pnpm tsc --project tsconfig.json"
+  },
+  "keywords": [],
+  "author": "Commodore <commodore64.dev@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "handlebars": "^4.7.8",
+    "helmet": "^8.1.0",
+    "playwright": "^1.52.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.21",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
 }
