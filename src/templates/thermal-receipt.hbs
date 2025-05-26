@@ -1,96 +1,95 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Receipt {{invoiceNumber}}</title>
     <!-- Tailwind CSS v4 - Browser CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @media print {
-            body {
-                print-color-adjust: exact;
-            }
-        }
-        @page {
-            margin: 0;
-            size: 80mm 297mm; /* Receipt width (80mm) and auto height */
-        }
+      @media print {
         body {
-            font-family: 'Courier New', Courier, monospace;
-            line-height: 1.2;
+          print-color-adjust: exact;
         }
-        .receipt-divider {
-            border-top: 1px dashed #888;
-            margin: 8px 0;
-        }
+      }
+      @page {
+        margin: 0;
+        size: 80mm 297mm; /* Receipt width (80mm) and auto height */
+      }
+      body {
+        font-family: "Courier New", Courier, monospace;
+        line-height: 1.2;
+      }
+      .receipt-divider {
+        border-top: 1px dashed #888;
+        margin: 8px 0;
+      }
     </style>
-</head>
-<body class="bg-white text-gray-800 p-4 max-w-[80mm] mx-auto">
+  </head>
+  <body class="bg-white text-gray-800 p-4 max-w-[80mm] mx-auto">
     <!-- Receipt Content -->
     <div class="w-full text-center mb-4">
-        <h1 class="text-xl font-bold uppercase">{{company.name}}</h1>
-        <div class="text-sm whitespace-pre-wrap">
-            <p>30 place du Centre</p>
-            <p>01234 MAVILLE</p>
-            <p>01 23 45 67 89</p>
-            <p class="lowercase">www.{{company.website || company.name}}.com</p>
-        </div>
+      <h1 class="text-xl font-bold uppercase">{{company.name}}</h1>
+      <div class="text-sm whitespace-pre-wrap">
+        <p>30 place du Centre</p>
+        <p>01234 MAVILLE</p>
+        <p>01 23 45 67 89</p>
+        <p class="lowercase">www.{{or company.website company.name}}.com</p>
+      </div>
     </div>
 
     <!-- Table Info -->
     <div class="mb-4 text-sm">
-        <p>Table 3</p>
-        <p>1 COUVERTS - {{client.name}}</p>
-        <p>Sign: {{invoiceNumber}}</p>
+      <p>Table 3</p>
+      <p>1 COUVERTS - {{client.name}}</p>
+      <p>Sign: {{invoiceNumber}}</p>
     </div>
 
     <!-- Items List -->
     <div class="mb-4">
-        {{#each items}}
+      {{#each items}}
         <div class="flex justify-between text-sm">
-            <div class="flex">
-                <span class="mr-2">1</span>
-                <span>{{description}}</span>
-            </div>
-            <span>{{total}}</span>
+          <div class="flex">
+            <span class="mr-2">1</span>
+            <span>{{description}}</span>
+          </div>
+          <span>{{total}}</span>
         </div>
-        {{/each}}
-        <div class="receipt-divider"></div>
+      {{/each}}
+      <div class="receipt-divider"></div>
     </div>
 
     <!-- Total -->
     <div class="flex justify-between font-bold mb-4">
-        <span>TOTAL</span>
-        <span>EUR {{totalAmount}}</span>
+      <span>TOTAL</span>
+      <span>EUR {{totalAmount}}</span>
     </div>
 
     <!-- Tax Info -->
     <div class="text-sm mb-4">
-        <p>dont TVA (5.5%): EUR {{tax}}</p>
+      <p>dont TVA (5.5%): EUR {{tax}}</p>
     </div>
 
     <!-- Payment Info -->
     <div class="text-sm mb-4">
-        <p>#21 payé en ESP</p>
-        <p>Donné: 15.00 EUR - Rendu: 3 EUR</p>
+      <p>#21 payé en ESP</p>
+      <p>Donné: 15.00 EUR - Rendu: 3 EUR</p>
     </div>
 
     <div class="receipt-divider"></div>
 
     <!-- Ticket Number -->
     <div class="text-center text-sm mb-4">
-        <p>TICKET {{currentDate "YYYY-MM-DD"}}-{{invoiceNumber}}</p>
-        <p>{{currentDate "DD/MM/YYYY"}}</p>
+      <p>TICKET {{currentDate "YYYY-MM-DD"}}-{{invoiceNumber}}</p>
+      <p>{{currentDate "DD/MM/YYYY"}}</p>
     </div>
 
     <div class="receipt-divider"></div>
 
     <!-- Footer -->
     <div class="text-center text-sm mb-4">
-        <p>MERCI DE VOTRE VISITE. A BIENTOT!</p>
-        <p>Société {{company.name}}</p>
-        <p>FR001234567890 - RCS PARIS B 123456789</p>
+      <p>MERCI DE VOTRE VISITE. A BIENTOT!</p>
+      <p>Société {{company.name}}</p>
+      <p>FR001234567890 - RCS PARIS B 123456789</p>
     </div>
-</body>
+  </body>
 </html>

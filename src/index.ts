@@ -43,7 +43,7 @@ app.get("/generate-receipt", async (req: Request, res: Response) => {
     );
 
     const pdfOptions = {
-      format: "a7",
+      format: "a5",
       printBackground: true,
       margin: {
         top: "0.1cm",
@@ -69,16 +69,16 @@ app.get("/generate-receipt", async (req: Request, res: Response) => {
 app.get("/generate-pdf", async (req: Request, res: Response) => {
   try {
     const template = handlebarsService.compileTemplate(
-      readFileSync(
-        resolve(".", "src", "templates/thermal-receipt.hbs"),
-        "utf-8",
-      ),
+      readFileSync(resolve(".", "src", "templates/receipt.hbs"), "utf-8"),
       mockInvoiceData,
     );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", 'attachment; filename="sample.pdf"');
-    const pdfBuffer = await browserManagerService.renderPage(template);
+    const pdfBuffer = await browserManagerService.renderPage(template, {
+      format: "A4",
+      printBackground: true,
+    });
     res.status(200).send(pdfBuffer);
   } catch (error) {
     console.error("Error generating PDF:", error);

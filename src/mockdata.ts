@@ -30,6 +30,7 @@ const mockInvoiceData = {
   amountGiven: "15.00",
   amountReturned: "3.00",
   ticketNumber: "5232",
+  paymentTerms: "Net 30 days", // Adding the missing paymentTerms property
   // Helper function for current date formatting
   currentDate: function (format: string) {
     const date = new Date();
