@@ -1,0 +1,195 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Invoice {{invoiceNumber}}</title>
+        <!-- Tailwind CSS v4 - Browser CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <style>
+            @media print {
+                body {
+                    print-color-adjust: exact;
+                }
+            }
+        </style>
+    </head>
+    <body class="bg-deepBlue-50 text-white font-sans"></body>
+        <div class="max-w-4xl mx-auto p-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-start mb-8">
+                <div class="flex-1"></div>
+                    <h1
+                        class="text-3xl font-bold text-yellow-500 mb-2"
+                    >{{company.name}}</h1>
+                    <div class="text-yellow-200 space-y-1">
+                        <p>{{company.address}}</p>
+                        {{#if company.city}}
+                            <p>{{company.city}}, {{company.state}} {{company.zipCode}}</p>
+                        {{/if}}
+                        <p class="text-yellow-500">{{company.email}}</p>
+                        {{#if company.phone}}
+                            <p>{{company.phone}}</p>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <h2 class="text-4xl font-bold text-yellow-500 mb-4">INVOICE</h2>
+                    <div class="bg-deepBlue-100 p-4 rounded-lg">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Invoice #:</span>
+                                <span class="text-yellow-500 font-bold">{{invoiceNumber}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Date:</span>
+                                <span>{{date}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Due Date:</span>
+                                <span class="text-burgundy-600 font-semibold">{{dueDate}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Information -->
+            <div class="mb-8">
+                <div class="bg-deepBlue-100 p-6 rounded-lg">
+                    <h3 class="text-lg font-bold text-yellow-500 mb-3">Bill To:</h3>
+                    <div class="text-yellow-200">
+                        <p class="font-semibold text-lg">{{client.name}}</p>
+                        <p>{{client.address}}</p>
+                        {{#if client.city}}
+                            <p>{{client.city}}, {{client.state}} {{client.zipCode}}</p>
+                        {{/if}}
+                        <p class="text-yellow-500">{{client.email}}</p>
+                        {{#if client.phone}}
+                            <p>{{client.phone}}</p>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="mb-8">
+                <div class="overflow-hidden rounded-lg border border-gray-200">
+                    <table class="w-full">
+                        <thead class="bg-yellow-500 text-deepBlue-900"></thead>
+                            <tr>
+                                <th class="px-6 py-4 text-left font-semibold">Description</th>
+                                <th class="px-6 py-4 text-center font-semibold">Qty</th>
+                                <th class="px-6 py-4 text-right font-semibold">Unit Price</th>
+                                <th class="px-6 py-4 text-right font-semibold">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {{#each items}}
+                                <tr class="hover:bg-deepBlue-50"></tr>
+                                    <td class="px-6 py-4">
+                                        <div class="font-medium text-gray-900">{{description}}</div>
+                                        {{#if details}}
+                                            <div class="text-sm text-gray-500">{{details}}</div>
+                                        {{/if}}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 text-center text-gray-700"
+                                    >{{quantity}}</td>
+                                    <td
+                                        class="px-6 py-4 text-right text-gray-700"
+                                    >${{unitPrice}}</td>
+                                    <td
+                                        class="px-6 py-4 text-right font-semibold text-gray-900"
+                                    >${{total}}</td>
+                                </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="flex justify-end mb-8">
+                <div class="w-80">
+                    <div class="bg-deepBlue-100 p-6 rounded-lg">
+                        {{#if subtotal}}
+                            <div class="flex justify-between py-2">
+                                <span class="font-medium">Subtotal:</span>
+                                <span class="font-semibold">${{subtotal}}</span>
+                            </div>
+                        {{/if}}
+
+                        {{#if tax}}
+                            <div class="flex justify-between py-2">
+                                <span class="font-medium">Tax ({{taxRate}}%):</span>
+                                <span class="font-semibold">${{tax}}</span>
+                            </div>
+                        {{/if}}
+
+                        {{#if discount}}
+                            <div class="flex justify-between py-2 text-green-600">
+                                <span class="font-medium">Discount:</span>
+                                <span class="font-semibold">-${{discount}}</span>
+                            </div>
+                        {{/if}}
+
+                        <div class="border-t border-gray-300 mt-4 pt-4">
+                            <div class="flex justify-between text-xl font-bold text-yellow-500">
+                                <span>Total:</span>
+                                <span>${{totalAmount}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            {{#if paymentMethod}}
+                <div class="mb-8">
+                    <div
+                        class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg"
+                    >
+                        <h3 class="text-lg font-bold text-yellow-800 mb-2">Payment
+                            Information</h3>
+                        <div class="text-yellow-700">
+                            <p><span class="font-semibold">Method:</span>
+                                {{paymentMethod}}</p>
+                            {{#if accountNumber}}
+                                <p><span class="font-semibold">Account:</span>
+                                    {{accountNumber}}</p>
+                            {{/if}}
+                            {{#if routingNumber}}
+                                <p><span class="font-semibold">Routing:</span>
+                                    {{routingNumber}}</p>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            {{/if}}
+
+            <!-- Notes -->
+            {{#if notes}}
+                <div class="mb-8">
+                    <div class="bg-deepBlue-100 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold text-yellow-500 mb-3">Notes:</h3>
+                        <p class="text-yellow-200 whitespace-pre-line">{{notes}}</p>
+                    </div>
+                </div>
+            {{/if}}
+
+            <!-- Footer -->
+            <div class="border-t border-gray-200 pt-8">
+                <div class="text-center text-yellow-200">
+                    <p class="text-lg font-semibold text-yellow-500 mb-2">Thank you for your
+                        business!</p>
+                    <p class="text-sm">{{paymentTerms}}</p>
+                    {{#if company.website}}
+                        <p class="text-sm mt-2">Visit us at:
+                            <span class="text-yellow-500">{{company.website}}</span></p>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

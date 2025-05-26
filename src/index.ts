@@ -1,7 +1,8 @@
-import express, { Request, Response } from "express";
+import express from "express";
+import type { Request, Response } from "express";
 import BrowserManagerService from "./services/playwright.service.js";
 import { HandlebarsService } from "./services/handlebars.service.js";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
 import { resolve } from "path";
 import { mockInvoiceData } from "./mockdata.js";
 import benchmarkMiddleware from "./middlewares/benchmark.middleware.js";
@@ -23,13 +24,55 @@ app.get("/", (_: Request, res: Response) => {
   res.json({
     message: "Playwright based PDF generator",
     timestamp: new Date().toISOString(),
+    availableEndpoints: [
+      "/generate-pdf",
+      "/generate-receipt",
+      "/generate-invoice",
+    ],
   });
+});
+
+app.get("/generate-receipt", async (req: Request, res: Response) => {
+  try {
+    const template = handlebarsService.compileTemplate(
+      readFileSync(
+        resolve(".", "src", "templates/thermal-receipt.hbs"),
+        "utf-8",
+      ),
+      mockInvoiceData,
+    );
+
+    const pdfOptions = {
+      format: "a7",
+      printBackground: true,
+      margin: {
+        top: "0.1cm",
+        right: "0.1cm",
+        bottom: "0.1cm",
+        left: "0.1cm",
+      },
+    };
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="receipt.pdf"');
+    const pdfBuffer = await browserManagerService.renderPage(
+      template,
+      pdfOptions,
+    );
+    res.status(200).send(pdfBuffer);
+  } catch (error) {
+    console.error("Error generating receipt:", error);
+    res.status(500).json({ error: "Failed to generate receipt PDF" });
+  }
 });
 
 app.get("/generate-pdf", async (req: Request, res: Response) => {
   try {
     const template = handlebarsService.compileTemplate(
-      readFileSync(resolve(".", "src", "templates/receipt.hbs"), "utf-8"),
+      readFileSync(
+        resolve(".", "src", "templates/thermal-receipt.hbs"),
+        "utf-8",
+      ),
       mockInvoiceData,
     );
 

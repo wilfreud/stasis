@@ -1,5 +1,7 @@
 import { chromium } from "playwright";
-import type { Browser } from "playwright";
+import type { Browser, Page, BrowserContext } from "playwright";
+
+type PDFOptions = Parameters<Page["pdf"]>[0];
 
 class BrowserManagerService {
   private browser: Browser | null = null;
@@ -27,18 +29,48 @@ class BrowserManagerService {
     return this.browser;
   }
 
-  public async createPage() {
+  public async createContext() {
+    console.debug("💭 Creating a new browser context...");
     const browserInstance = await this.getBrowser();
-    return await browserInstance?.newPage();
+    return await browserInstance?.newContext();
   }
 
-  public async renderPage(html: string): Promise<Buffer> {
-    console.log("Rendering page with HTML content...");
-    const page = await this.createPage();
-    if (!page) throw new Error("Failed to create a new page");
+  public async closeContext(context: BrowserContext) {
+    if (context) {
+      await context.close();
+    }
+  }
 
-    await page.setContent(html);
-    return await page.pdf({ format: "A5" });
+  public async createPage(
+    ignoreContextCreation: boolean = false,
+  ): Promise<Page | undefined> {
+    if (ignoreContextCreation) return (await this.getBrowser())?.newPage();
+
+    const context = await this.createContext();
+    return await context?.newPage();
+  }
+
+  public async renderPage(
+    html: string,
+    pdfOptions: PDFOptions = { format: "A4", printBackground: true },
+  ): Promise<Buffer> {
+    console.log("Rendering page with HTML content...");
+    let page: Page | undefined;
+    try {
+      page = await this.createPage();
+      if (!page) throw new Error("Failed to create a new page");
+
+      await page.setContent(html);
+
+      return await page.pdf(pdfOptions);
+    } catch (error) {
+      console.error("Failed to render page:", error);
+      throw error;
+    } finally {
+      if (page) {
+        await this.closeContext(page.context());
+      }
+    }
   }
 }
 
