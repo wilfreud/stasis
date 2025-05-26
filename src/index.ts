@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import BrowserManagerService from "./services/playwright.service.js";
 import { HandlebarsService } from "./services/handlebars.service.js";
-import { readFile, writeFile } from "fs/promises";
+import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { mockInvoiceData } from "./mockdata.js";
 import benchmarkMiddleware from "./middlewares/benchmark.middleware.js";
@@ -29,23 +29,14 @@ app.get("/", (_: Request, res: Response) => {
 app.get("/generate-pdf", async (req: Request, res: Response) => {
   try {
     const template = handlebarsService.compileTemplate(
-      await readFile(resolve(".", "src", "templates/receipt.hbs"), "utf-8"),
+      readFileSync(resolve(".", "src", "templates/receipt.hbs"), "utf-8"),
       mockInvoiceData,
     );
 
-    await writeFile(
-      "out.pdf",
-      await browserManagerService.renderPage(template),
-      "binary",
-    );
-
-    res.status(200).json({
-      message: "PDF generated successfully",
-      timestamp: new Date().toISOString(),
-      templateType: "receipt.hbs",
-      template,
-      data: mockInvoiceData,
-    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="sample.pdf"');
+    const pdfBuffer = await browserManagerService.renderPage(template);
+    res.status(200).send(pdfBuffer);
   } catch (error) {
     console.error("Error generating PDF:", error);
     res.status(500).json({ error: "Failed to generate PDF" });
