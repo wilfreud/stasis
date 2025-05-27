@@ -1,13 +1,13 @@
-import { HandlebarsService } from "src/services/handlebars.service.js";
-import BrowserManagerService from "src/services/playwright.service.js";
+import { HandlebarsService } from "../services/handlebars.service.js";
+import BrowserManagerService from "../services/playwright.service.js";
 import type { Request, Response } from "express";
 import {
   GeneratePdfFromRawHtmlQueryParam,
   GeneratePdfQueryParam,
-} from "src/types/index.js";
+} from "../types/index.js";
 import { resolve } from "path";
 import { readFileSync, existsSync } from "fs";
-import { mockInvoiceData } from "src/mockdata.js";
+import { mockInvoiceData } from "../mockdata.js";
 
 const browserManagerService = new BrowserManagerService();
 const handlebarsService = new HandlebarsService();

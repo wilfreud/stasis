@@ -25,6 +25,9 @@ COPY . .
 # Build the TypeScript application
 RUN pnpm build
 
+# Run the build fix script to add path aliases
+RUN node scripts/build-fix.js
+
 # Clean up dev dependencies to save space (optional)
 RUN pnpm prune --prod
 
