@@ -4,11 +4,11 @@ Express.js service that generates PDFs from Handlebars templates using Playwrigh
 
 ## Features
 
-- Generates PDFs from HTML templates with dynamic data injection
-- Supports multiple output formats (invoices, thermal receipts)
+- Converts HTML templates into PDFs with dynamic data injection
+- Supports flexible data structures defined by the client
 - Built with TypeScript and Playwright for reliable rendering
 - Docker-ready for deployment
-- Benchmarking middleware for performance monitoring
+- Includes middleware for performance monitoring
 
 ## Stack
 
@@ -25,17 +25,21 @@ Express.js service that generates PDFs from Handlebars templates using Playwrigh
 ```
 pdf-generator/
 ├── src/
-│   ├── index.ts                 # Server & routes
-│   ├── mockdata.ts              # Sample data
+│   ├── index.ts                     # Server entry point
+│   ├── mockdata.ts                  # Sample data
+│   ├── controllers/
+│   │   └── index.ts                 # HTTP request handlers
 │   ├── middlewares/
-│   │   └── benchmark.middleware.ts
+│   │   └── benchmark.middleware.ts  # Performance monitoring
 │   ├── services/
-│   │   ├── handlebars.service.ts
-│   │   └── playwright.service.ts
-│   └── templates/
-│       ├── receipt.hbs
-│       ├── thermal-receipt.hbs
-│       └── invoice-tailwind.hbs
+│   │   ├── handlebars.service.ts    # Template compilation
+│   │   └── playwright.service.ts    # PDF generation
+│   ├── templates/
+│   │   └── thermal-receipt.hbs      # Handlebars templates
+│   ├── types/
+│   │   └── index.ts                 # TypeScript interfaces
+│   └── utils/
+│       └── dto.utils.ts             # Validation utilities
 ├── Dockerfile
 └── compose.yaml
 ```
@@ -63,11 +67,53 @@ pnpm build
 
 ## API
 
-| Endpoint                | Description      | Format |
-| ----------------------- | ---------------- | ------ |
-| `GET /`                 | API info         | -      |
-| `GET /generate-pdf`     | Standard invoice | A4     |
-| `GET /generate-receipt` | Thermal receipt  | A5     |
+| Endpoint        | Method | Description                   | Content-Type     |
+| --------------- | ------ | ----------------------------- | ---------------- |
+| `/`             | GET    | Health check & API info       | application/json |
+| `/test`         | GET    | Test PDF generation (receipt) | application/pdf  |
+| `/generate-pdf` | POST   | Generate PDF from template    | application/pdf  |
+| `/generate-raw` | POST   | Generate PDF from raw HTML    | application/pdf  |
+
+### Request Body Examples
+
+#### `/generate-pdf` - Template-based generation:
+
+```json
+{
+  "templateId": "thermal-receipt",
+  "data": {
+    "invoiceNumber": "INV-001",
+    "date": "2024-01-15",
+    "company": {
+      "name": "Acme Corp",
+      "address": "123 Main St"
+    }
+  },
+  "pdfOptions": {
+    "format": "A4",
+    "margin": {
+      "top": "1cm",
+      "bottom": "1cm"
+    }
+  },
+  "outputFileName": "invoice.pdf"
+}
+```
+
+#### `/generate-raw` - Raw HTML generation:
+
+```json
+{
+  "rawHtml": "<html><body><h1>{{title}}</h1></body></html>",
+  "data": {
+    "title": "My Document"
+  },
+  "pdfOptions": {
+    "format": "A4"
+  },
+  "outputFileName": "document.pdf"
+}
+```
 
 ## 📦 Docker Deployment
 
@@ -107,44 +153,18 @@ The service includes several Handlebars helpers:
 
 1. Create a new `.hbs` file in the `src/templates` directory
 2. Use Handlebars syntax for dynamic content
-3. Add the template to the service by creating a new route in `src/index.ts`
+3. Register the template in the controller by using the `templateId` parameter
+4. Ensure your template data structure matches the expected interface
 
-## 🧪 Data Structure
+## Architecture
 
-The service works with a standard data structure for invoices and receipts:
+The service follows a clean separation of concerns:
 
-```typescript
-{
-  invoiceNumber: string;
-  date: string;
-  dueDate: string;
-  company: {
-    name: string;
-    address: string;
-    phone?: string;
-    email: string;
-    website?: string;
-  };
-  client: {
-    name: string;
-    address: string;
-    email: string;
-  };
-  items: Array<{
-    description: string;
-    quantity: number;
-    unitPrice: string;
-    total: string;
-    details?: string;
-  }>;
-  tax?: string;
-  taxRate?: string;
-  subtotal: string;
-  totalAmount: string;
-  paymentMethod?: string;
-  paymentTerms: string;
-}
-```
+- **Controllers** (`src/controllers/`): Handle HTTP requests and responses
+- **Services** (`src/services/`): Business logic for PDF generation and template compilation
+- **Types** (`src/types/`): TypeScript interfaces and type definitions
+- **Utils** (`src/utils/`): Helper functions and validation utilities
+- **Templates** (`src/templates/`): Handlebars template files
 
 ## 📝 License
 
