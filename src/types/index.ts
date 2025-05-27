@@ -1,3 +1,4 @@
+import { Request } from "express";
 import type { Page } from "playwright";
 
 export type PDFOptions = Parameters<Page["pdf"]>[0];
@@ -44,4 +45,26 @@ export interface ApiErrorResponse {
   error?: string;
   /** Optional resource identifier for 404 errors */
   resourceId?: string;
+}
+
+/**
+ * Extended Request interface for template upload
+ */
+export interface TemplateUploadRequest extends Request {
+  file?: Express.Multer.File;
+  body: {
+    templateName: string;
+    overwrite: string;
+    pageToken: string;
+  };
+}
+
+/**
+ * Extended Request interface for template deletion
+ */
+export interface TemplateDeleteRequest extends Request {
+  body: {
+    templateName: string;
+    pageToken: string;
+  };
 }

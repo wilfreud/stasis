@@ -81,32 +81,4 @@ export class HandlebarsService {
     });
     return compiledTemplate(data);
   }
-
-  public compileTemplateWithCSS(
-    template: string,
-    data: Record<string, any>,
-    cssPath?: string,
-  ): string {
-    let processedTemplate = template;
-
-    // If CSS path is provided, inline the CSS
-    if (cssPath) {
-      try {
-        const cssContent = readFileSync(resolve(cssPath), "utf-8");
-        // Replace CSS link with inline styles
-        processedTemplate = template.replace(
-          /<link rel="stylesheet" href="[^"]*">/g,
-          `<style>${cssContent}</style>`,
-        );
-      } catch (error) {
-        console.warn(`Warning: Could not read CSS file at ${cssPath}:`, error);
-      }
-    }
-
-    const compiledTemplate = Handlebars.compile(processedTemplate, {
-      strict: true,
-      noEscape: false,
-    });
-    return compiledTemplate(data);
-  }
 }

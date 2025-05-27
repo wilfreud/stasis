@@ -2,28 +2,11 @@ import { Request, Response } from "express";
 import { resolve } from "path";
 import { readdir, writeFile, unlink } from "fs/promises";
 import { existsSync } from "fs";
+import path from "path";
+import { TemplateDeleteRequest, TemplateUploadRequest } from "@/types/index.js";
 
-/**
- * Extended Request interface for template upload
- */
-interface TemplateUploadRequest extends Request {
-  file?: Express.Multer.File;
-  body: {
-    templateName: string;
-    overwrite: string;
-    pageToken: string;
-  };
-}
-
-/**
- * Extended Request interface for template deletion
- */
-interface TemplateDeleteRequest extends Request {
-  body: {
-    templateName: string;
-    pageToken: string;
-  };
-}
+const templatesDir =
+  process.env.TEMPLATES_DIR || path.resolve("src", "templates");
 
 /**
  * Lists all available templates in the templates directory
@@ -36,7 +19,6 @@ export const listTemplates = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const templatesDir = resolve(".", "src", "templates");
     const files = await readdir(templatesDir);
     const templates = files
       .filter((file) => file.endsWith(".hbs") || file.endsWith(".handlebars"))
@@ -73,12 +55,7 @@ export const uploadTemplate = async (
     }
 
     const { templateName, overwrite } = req.body;
-    const templatePath = resolve(
-      ".",
-      "src",
-      "templates",
-      `${templateName}.hbs`,
-    );
+    const templatePath = resolve(templatesDir, `${templateName}.hbs`);
 
     // Check if template exists and overwrite is not enabled
     if (existsSync(templatePath) && overwrite !== "true") {
@@ -118,12 +95,7 @@ export const deleteTemplate = async (
 ): Promise<void> => {
   try {
     const { templateName } = req.body;
-    const templatePath = resolve(
-      ".",
-      "src",
-      "templates",
-      `${templateName}.hbs`,
-    );
+    const templatePath = resolve(templatesDir, `${templateName}.hbs`);
 
     if (!existsSync(templatePath)) {
       res.status(404).json({

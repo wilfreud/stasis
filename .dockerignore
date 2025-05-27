@@ -34,3 +34,5 @@ LICENSE
 README.md
 **/*.pdf
 **/*.md
+.prettierrc
+**/*.md
