@@ -1,5 +1,7 @@
 # Stasis
 
+![Stasis Logo](public/stasis.png)
+
 A high-performance (well, still gotta benchmark first), RESTful Express.js "microservice" (arguably) for generating PDF documents from Handlebars templates using Playwright headless browser.
 
 ## Features
@@ -257,15 +259,6 @@ volumes:
 Using a named volume provides better portability and proper Docker-managed lifecycle for your template files.
 
 For more details on testing template persistence, see [DOCKER-PERSISTENCE.md](DOCKER-PERSISTENCE.md).
-
-### Environment Variables
-
-| Variable     | Default | Description                     |
-| ------------ | ------- | ------------------------------- |
-| `PORT`       | 7070    | HTTP server port                |
-| `NODE_ENV`   | dev     | Environment (dev/production)    |
-| `LOG_LEVEL`  | info    | Logging verbosity               |
-| `TIMEOUT_MS` | 30000   | Request timeout in milliseconds |
 
 ## Template Development
 
