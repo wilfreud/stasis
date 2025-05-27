@@ -74,6 +74,8 @@ pnpm start
 
 ## REST API Reference
 
+### PDF Generation Endpoints
+
 | Endpoint              | Method | Description                   | Request Body              | Response           |
 | --------------------- | ------ | ----------------------------- | ------------------------- | ------------------ |
 | `/api/health`         | GET    | Service health status         | -                         | `application/json` |
@@ -81,7 +83,33 @@ pnpm start
 | `/api/documents/raw`  | POST   | Generate PDF from raw HTML    | HTML content and data     | `application/pdf`  |
 | `/api/documents/test` | GET    | Test PDF generation (receipt) | -                         | `application/pdf`  |
 
+### Template Management Endpoints
+
+| Endpoint                | Method | Description                  | Request Body                          | Response           |
+| ----------------------- | ------ | ---------------------------- | ------------------------------------- | ------------------ |
+| `/api/templates/list`   | GET    | List all available templates | -                                     | `application/json` |
+| `/api/templates/upload` | POST   | Upload a new template        | multipart/form-data (file + metadata) | `application/json` |
+| `/api/templates/delete` | DELETE | Delete an existing template  | JSON with template name               | `application/json` |
+
 ### Request Body Examples
+
+#### `POST /api/templates/upload` - Upload a Template
+
+This endpoint accepts `multipart/form-data` with the following fields:
+
+```
+templateName: "invoice"      // Name to identify the template (without extension)
+templateFile: [Binary File]  // .hbs or .handlebars file content
+overwrite: "true"            // Optional boolean to allow overwriting existing templates
+```
+
+#### `DELETE /api/templates/delete` - Delete a Template
+
+```json
+{
+  "templateName": "invoice" // Name of the template to delete (without extension)
+}
+```
 
 #### `POST /api/documents` - Generate PDF from Template
 
@@ -153,14 +181,25 @@ pnpm start
 #### Success Responses
 
 - **PDF Generation**: Returns the PDF binary with `Content-Type: application/pdf` and appropriate filename headers
+- **Template Management**: Returns JSON status and result information with appropriate HTTP status codes
 - **Health Check**: Returns JSON status information with HTTP 200
 
 ```json
+// Health check response
 {
   "status": "OK",
   "service": "Playwright based PDF generator",
   "timestamp": "2025-05-27T10:15:30.123Z"
 }
+
+// Template upload success response
+{
+  "status": "success",
+  "message": "Template 'invoice' has been created"
+}
+
+// Template list response
+["thermal-receipt", "invoice", "report"]
 ```
 
 #### Error Responses
@@ -305,3 +344,36 @@ Contributions are welcome! Please follow these steps:
 5. Open a Pull Request
 
 For major changes, please open an issue first to discuss proposed changes.
+
+## Template Management UI
+
+The service includes a web-based template management interface that allows users to:
+
+1. Upload new Handlebars templates
+2. View existing templates
+3. Delete templates when no longer needed
+
+To access this interface, navigate to the root URL of the service in a web browser:
+
+```
+http://localhost:7070
+```
+
+### Security Features
+
+The template management interface includes security features to prevent unauthorized template uploads:
+
+- Token-based authentication between the frontend and API
+- File extension validation (only `.hbs` and `.handlebars` files)
+- File size limits (max 2MB)
+- Protection against template overwriting (optional toggle)
+- Input validation and sanitization for template names
+
+### Using the Template Manager
+
+1. **View Templates**: All existing templates are displayed in a list
+2. **Upload Template**:
+   - Enter a template name (without extension)
+   - Select a `.hbs` file or drag and drop
+   - Choose whether to overwrite existing templates
+3. **Delete Template**: Click the delete button next to any template in the list

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HBS Template Manager</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom styles -->
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .bg-pattern {
+          background-color: #f8fafc;
+          background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-pattern min-h-screen flex flex-col items-center justify-center p-4"
+  >
+    <div class="bg-white shadow-xl rounded-lg p-8 w-full max-w-md">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">HBS Template Manager</h1>
+        <p class="text-gray-600 mt-2">
+          Upload new Handlebars templates to the service
+        </p>
+      </div>
+
+      <form id="upload-form" class="space-y-4">
+        <div>
+          <label
+            for="templateName"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Template Name</label
+          >
+          <input
+            type="text"
+            id="templateName"
+            name="templateName"
+            required
+            placeholder="invoice"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            This will be used as the template ID (e.g., "invoice.hbs")
+          </p>
+        </div>
+
+        <div>
+          <label
+            for="templateFile"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Template File (.hbs)</label
+          >
+          <div
+            class="relative border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center"
+          >
+            <svg
+              class="mx-auto h-12 w-12 text-gray-400"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4h-12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <div class="flex text-sm text-gray-600 mt-2">
+              <label
+                for="templateFile"
+                class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
+              >
+                <span>Upload a file</span>
+                <input
+                  id="templateFile"
+                  name="templateFile"
+                  type="file"
+                  accept=".hbs,.handlebars"
+                  class="sr-only"
+                  required
+                />
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">HBS files only</p>
+          </div>
+          <div id="file-name" class="mt-1 text-sm text-gray-500"></div>
+        </div>
+
+        <div class="flex items-center">
+          <input
+            id="overwrite"
+            name="overwrite"
+            type="checkbox"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label for="overwrite" class="ml-2 block text-sm text-gray-900">
+            Overwrite if template exists
+          </label>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Upload Template
+          </button>
+        </div>
+      </form>
+
+      <div id="status" class="mt-4 p-3 text-sm hidden"></div>
+      <div id="existing-templates" class="mt-6 pt-4 border-t border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Available Templates</h2>
+        <div id="template-list" class="mt-2">
+          <p class="text-gray-500 text-sm">Loading templates...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Display selected file name
+      document
+        .getElementById("templateFile")
+        .addEventListener("change", function (e) {
+          const fileName = e.target.files[0]?.name || "No file selected";
+          document.getElementById("file-name").textContent =
+            `Selected file: ${fileName}`;
+        });
+
+      // Handle drag and drop
+      const dropArea = document.querySelector(".border-dashed");
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, highlight, false);
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight() {
+        dropArea.classList.add("border-indigo-500");
+        dropArea.classList.add("bg-indigo-50");
+      }
+
+      function unhighlight() {
+        dropArea.classList.remove("border-indigo-500");
+        dropArea.classList.remove("bg-indigo-50");
+      }
+
+      dropArea.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        document.getElementById("templateFile").files = files;
+        document.getElementById("file-name").textContent =
+          `Selected file: ${files[0].name}`;
+      }
+
+      // Form submission
+      document
+        .getElementById("upload-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData();
+          const templateName = document.getElementById("templateName").value;
+          const templateFile = document.getElementById("templateFile").files[0];
+          const overwrite = document.getElementById("overwrite").checked;
+
+          if (!templateFile || !templateName) {
+            showStatus("Please provide both template name and file", "error");
+            return;
+          }
+
+          formData.append("templateName", templateName);
+          formData.append("templateFile", templateFile);
+          formData.append("overwrite", overwrite);
+
+          // Generate a unique token to verify request is from this page
+          const pageToken =
+            localStorage.getItem("uploadPageToken") || generateToken();
+          localStorage.setItem("uploadPageToken", pageToken);
+          formData.append("pageToken", pageToken);
+
+          try {
+            showStatus("Uploading template...", "info");
+
+            const response = await fetch("/api/templates/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              showStatus(result.message, "success");
+              loadTemplates(); // Refresh template list
+            } else {
+              showStatus(result.message || "Upload failed", "error");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            showStatus("Failed to upload template", "error");
+          }
+        });
+
+      function showStatus(message, type) {
+        const statusEl = document.getElementById("status");
+        statusEl.textContent = message;
+        statusEl.classList.remove(
+          "hidden",
+          "bg-green-100",
+          "text-green-700",
+          "bg-red-100",
+          "text-red-700",
+          "bg-blue-100",
+          "text-blue-700",
+        );
+
+        if (type === "success") {
+          statusEl.classList.add("bg-green-100", "text-green-700");
+        } else if (type === "error") {
+          statusEl.classList.add("bg-red-100", "text-red-700");
+        } else {
+          statusEl.classList.add("bg-blue-100", "text-blue-700");
+        }
+
+        statusEl.classList.remove("hidden");
+      }
+
+      function generateToken() {
+        return (
+          Math.random().toString(36).substring(2, 15) +
+          Math.random().toString(36).substring(2, 15)
+        );
+      }
+
+      // Load existing templates
+      async function loadTemplates() {
+        try {
+          const response = await fetch("/api/templates/list");
+          const templates = await response.json();
+
+          const listEl = document.getElementById("template-list");
+
+          if (templates.length === 0) {
+            listEl.innerHTML =
+              '<p class="text-gray-500 text-sm">No templates available</p>';
+            return;
+          }
+
+          listEl.innerHTML = templates
+            .map(
+              (template) => `
+              <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="font-medium">${template}</span>
+                <button 
+                  data-template="${template}"
+                  class="delete-btn text-xs text-white bg-red-500 hover:bg-red-600 py-1 px-2 rounded">
+                  Delete
+                </button>
+              </div>
+            `,
+            )
+            .join("");
+
+          // Add event listeners to delete buttons
+          document.querySelectorAll(".delete-btn").forEach((btn) => {
+            btn.addEventListener("click", handleDelete);
+          });
+        } catch (error) {
+          console.error("Failed to load templates:", error);
+          document.getElementById("template-list").innerHTML =
+            '<p class="text-red-500 text-sm">Failed to load templates</p>';
+        }
+      }
+
+      async function handleDelete(e) {
+        const template = e.target.dataset.template;
+        if (!confirm(`Are you sure you want to delete "${template}"?`)) return;
+
+        try {
+          const pageToken =
+            localStorage.getItem("uploadPageToken") || generateToken();
+
+          const response = await fetch(`/api/templates/delete`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              templateName: template,
+              pageToken,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            showStatus(result.message, "success");
+            loadTemplates(); // Refresh list
+          } else {
+            showStatus(result.message || "Delete failed", "error");
+          }
+        } catch (error) {
+          console.error("Error deleting template:", error);
+          showStatus("Failed to delete template", "error");
+        }
+      }
+
+      // Load templates on page load
+      document.addEventListener("DOMContentLoaded", loadTemplates);
+    </script>
+  </body>
+</html>
