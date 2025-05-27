@@ -1,6 +1,6 @@
 # PDF Generator
 
-A high-performance, RESTful Express.js microservice for generating PDF documents from Handlebars templates using Playwright headless browser.
+A high-performance (well, still gotta benchmark first), RESTful Express.js microservice for generating PDF documents from Handlebars templates using Playwright headless browser.
 
 ## Features
 
@@ -243,6 +243,21 @@ docker compose up -d
 docker compose logs -f
 ```
 
+The Docker Compose configuration includes a named volume to persist templates, ensuring that uploaded templates are not lost when containers are recreated:
+
+```yaml
+volumes:
+  - pdf_templates:/app/src/templates # Use named volume for template persistence
+
+volumes:
+  pdf_templates:
+    # Named volume for templates that persists across container recreations
+```
+
+Using a named volume provides better portability and proper Docker-managed lifecycle for your template files.
+
+For more details on testing template persistence, see [DOCKER-PERSISTENCE.md](DOCKER-PERSISTENCE.md).
+
 ### Environment Variables
 
 | Variable     | Default | Description                     |
@@ -352,6 +367,8 @@ The service includes a web-based template management interface that allows users
 1. Upload new Handlebars templates
 2. View existing templates
 3. Delete templates when no longer needed
+
+When running in Docker, templates are persisted to the host machine through a volume mapping, ensuring they remain available even after container restarts or rebuilds.
 
 To access this interface, navigate to the root URL of the service in a web browser:
 

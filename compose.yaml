@@ -9,3 +9,9 @@ services:
       NODE_ENV: production
     ports:
       - 7070:7070
+    volumes:
+      - pdf_templates:/app/src/templates # Use named volume for template persistence
+
+volumes:
+  pdf_templates:
+    # Named volume for templates that persists across container recreations

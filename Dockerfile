@@ -30,6 +30,7 @@ RUN pnpm prune --prod
 
 # Create node user and set permissions
 RUN mkdir -p /home/node && \
+    mkdir -p /app/src/templates && \
     chown -R node:node /home/node /app
 
 # Switch to node user
