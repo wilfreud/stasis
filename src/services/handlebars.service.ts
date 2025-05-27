@@ -9,8 +9,14 @@ export class HandlebarsService {
     this.registerHelpers();
   }
 
-  private registerHelpers(): void {
-    console.log("Registering Handlebars helper: capitalize");
+  private registerHelpers(shouldLog: boolean = false): void {
+    const log = (message: string) => {
+      if (shouldLog) {
+        console.log(message);
+      }
+    };
+
+    log("Registering Handlebars helper: capitalize");
     Handlebars.registerHelper("capitalize", function (str: string) {
       if (typeof str !== "string") {
         return "";
@@ -18,7 +24,7 @@ export class HandlebarsService {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
 
-    console.log("Registering Handlebars helper: lowercase");
+    log("Registering Handlebars helper: lowercase");
     Handlebars.registerHelper("lowercase", function (str: string) {
       if (typeof str !== "string") {
         return "";
@@ -26,7 +32,7 @@ export class HandlebarsService {
       return str.toLowerCase();
     });
 
-    console.log("Registering Handlebars helper: uppercase");
+    log("Registering Handlebars helper: uppercase");
     Handlebars.registerHelper("uppercase", function (str: string) {
       if (typeof str !== "string") {
         return "";
@@ -34,7 +40,7 @@ export class HandlebarsService {
       return str.toUpperCase();
     });
 
-    console.log("Registering Handlebars helper: formatDate");
+    log("Registering Handlebars helper: formatDate");
     Handlebars.registerHelper(
       "formatDate",
       function (date: string, dateFormat: string) {
@@ -42,17 +48,17 @@ export class HandlebarsService {
       },
     );
 
-    console.log("Registering Handlebars helper: gt");
+    log("Registering Handlebars helper: gt");
     Handlebars.registerHelper("gt", function (a: number, b: number) {
       return a > b;
     });
 
-    console.log("Registering Handlebars helper: or");
+    log("Registering Handlebars helper: or");
     Handlebars.registerHelper("or", function (a: any, b: any) {
       return a || b;
     });
 
-    console.log("Registering Handlebars helper: currentDate");
+    log("Registering Handlebars helper: currentDate");
     Handlebars.registerHelper("currentDate", function (format: string) {
       const date = new Date();
       const year = date.getFullYear();

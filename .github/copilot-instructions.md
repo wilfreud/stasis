@@ -55,8 +55,8 @@ try {
 - **Framework**: Express.js with TypeScript
 - **PDF Generation**: Playwright (`playwright`)
 - **Templating**: Handlebars (`hbs`)
-- **Validation**: Zod for request validation
-- **Testing**: Jest with TypeScript support
+  <!-- - **Validation**: Zod for request validation -->
+  <!-- - **Testing**: Jest with TypeScript support -->
 - **Code Quality**: ESLint + Prettier
 
 ## Playwright Guidelines

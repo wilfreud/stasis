@@ -11,10 +11,6 @@
           print-color-adjust: exact;
         }
       }
-      @page {
-        margin: 0;
-        size: 80mm 297mm; /* Receipt width (80mm) and auto height */
-      }
       body {
         font-family: "Courier New", Courier, monospace;
         line-height: 1.2;
@@ -25,7 +21,7 @@
       }
     </style>
   </head>
-  <body class="bg-white text-gray-800 p-4 max-w-[80mm] mx-auto">
+  <body class="bg-white text-gray-800">
     <!-- Receipt Content -->
     <div class="w-full text-center mb-4">
       <h1 class="text-xl font-bold uppercase">{{company.name}}</h1>

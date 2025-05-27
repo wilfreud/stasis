@@ -1,7 +1,6 @@
 import { chromium } from "playwright";
 import type { Browser, Page, BrowserContext } from "playwright";
-
-type PDFOptions = Parameters<Page["pdf"]>[0];
+import type { PDFOptions } from "src/types/index.js";
 
 class BrowserManagerService {
   private browser: Browser | null = null;
