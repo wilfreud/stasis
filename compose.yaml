@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: stasis
     environment:
       NODE_ENV: production
     ports:

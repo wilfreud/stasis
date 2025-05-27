@@ -1,6 +1,6 @@
-# PDF Generator
+# Stasis
 
-A high-performance (well, still gotta benchmark first), RESTful Express.js microservice for generating PDF documents from Handlebars templates using Playwright headless browser.
+A high-performance (well, still gotta benchmark first), RESTful Express.js "microservice" (arguably) for generating PDF documents from Handlebars templates using Playwright headless browser.
 
 ## Features
 
