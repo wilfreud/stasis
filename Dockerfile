@@ -1,46 +1,46 @@
 ARG NODE_VERSION=20
 ARG PNPM_VERSION=10.11.0
 
-FROM node:${NODE_VERSION}-bookworm-slim
-
-# Use production node environment
-ENV NODE_ENV=production
-
-# Install pnpm
-RUN --mount=type=cache,target=/root/.npm \
-    npm install -g pnpm@${PNPM_VERSION}
-
+# Build stage
+FROM mcr.microsoft.com/playwright:v1.52.0 AS builder
 WORKDIR /app
 
-# Copy package files first for better caching
+# Install pnpm
+RUN npm install -g pnpm@${PNPM_VERSION}
+
+# Leverage layer caching by copying package files first
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# Install all dependencies and build in one go
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
-
-# Copy source files
+# Copy source code after installing dependencies
 COPY . .
+RUN pnpm run build && \
+    node scripts/build-fix.js
 
-# Build the TypeScript application
-RUN pnpm build
+# Production stage
+FROM mcr.microsoft.com/playwright:v1.52.0
+WORKDIR /app
 
-# Run the build fix script to add path aliases
-RUN node scripts/build-fix.js
+# Install pnpm
+RUN npm install -g pnpm@${PNPM_VERSION}
 
-# Clean up dev dependencies to save space (optional)
-RUN pnpm prune --prod
+# Copy only the necessary files
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/public ./public
 
-# Create node user and set permissions
-RUN mkdir -p /home/node && \
-    mkdir -p /app/src/templates && \
-    chown -R node:node /home/node /app
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
 
-# Switch to node user
-USER node
+# Ensure templates directory exists and has correct permissions
+RUN mkdir -p /app/templates && \
+    chmod 777 /app/templates
 
-# Expose the port
+# Set up user permissions (playwright image already has pwuser)
+RUN chown -R pwuser:pwuser /app
+USER pwuser
+
 EXPOSE 7070
-
-# Run the application
-ENTRYPOINT [ "node", "dist/index.js" ]
+ENTRYPOINT ["node", "dist/index.js"]

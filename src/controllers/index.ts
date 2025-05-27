@@ -30,11 +30,9 @@ export const healthCheck = (_: Request, res: Response) => {
  */
 export const testPdfGeneration = async (_req: Request, res: Response) => {
   try {
+    const templatesDir = process.env.TEMPLATES_DIR || resolve(".", "templates");
     const template = handlebarsService.compileTemplate(
-      readFileSync(
-        resolve(".", "src", "templates/thermal-receipt.hbs"),
-        "utf-8",
-      ),
+      readFileSync(resolve(templatesDir, "thermal-receipt.hbs"), "utf-8"),
       mockInvoiceData,
     );
 
@@ -108,7 +106,8 @@ export const generatePdf = async (
   if (customTemplate) {
     templateContent = customTemplate;
   } else if (templateId) {
-    const templatePath = resolve(".", "src", "templates", `${templateId}.hbs`);
+    const templatesDir = process.env.TEMPLATES_DIR || resolve(".", "templates");
+    const templatePath = resolve(templatesDir, `${templateId}.hbs`);
 
     // Check if the template file exists
     if (!existsSync(templatePath)) {

@@ -249,7 +249,7 @@ The Docker Compose configuration includes a named volume to persist templates, e
 
 ```yaml
 volumes:
-  - pdf_templates:/app/src/templates # Use named volume for template persistence
+  - pdf_templates:/app/templates # Use named volume for template persistence
 
 volumes:
   pdf_templates:
@@ -266,7 +266,7 @@ For more details on testing template persistence, see [DOCKER-PERSISTENCE.md](DO
 
 Templates can be developed using Handlebars syntax and registered with the service. The framework supports:
 
-- **Standard templates**: Stored in `src/templates/` directory
+- **Standard templates**: Stored in `templates/` directory (or path specified by TEMPLATES_DIR environment variable)
 - **Custom templates**: Sent directly in API requests
 - **Dynamic data binding**: Any JSON object structure can be rendered
 - **Nested objects**: Access deeply nested properties with dot notation
@@ -287,7 +287,7 @@ The service extends Handlebars with additional helper functions:
 
 ### Template Creation Process
 
-1. Create a new `.hbs` file in `src/templates/` (e.g., `invoice.hbs`)
+1. Create a new `.hbs` file in the templates directory (e.g., `invoice.hbs`)
 2. Use Handlebars syntax for dynamic content injection
 3. Include any required CSS for styling (inline or via Tailwind)
 4. Use the template by referencing its ID in API calls: `"templateId": "invoice"`

@@ -1,8 +1,6 @@
 import Handlebars from "handlebars";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { readFileSync } from "fs";
-import { resolve } from "path";
 
 export class HandlebarsService {
   constructor() {

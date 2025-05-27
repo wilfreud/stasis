@@ -1,6 +1,7 @@
 # Testing Template Persistence with Docker Compose
 
-To verify that templates are correctly persisted between container restarts:
+T# Copy templates from your local machine to the container
+docker cp ./template-backup/. pdf-generation-service:/app/templatesverify that templates are correctly persisted between container restarts:
 
 1. Start the service using Docker Compose:
 
@@ -35,7 +36,7 @@ To inspect the templates stored in the volume:
 
 ```powershell
 # List the templates in the named volume
-docker exec pdf-generation-service ls -la /app/src/templates
+docker exec pdf-generation-service ls -la /app/templates
 ```
 
 To back up templates from the volume to your local machine:
@@ -45,12 +46,12 @@ To back up templates from the volume to your local machine:
 mkdir -p template-backup
 
 # Copy templates from the container to your local machine
-docker cp pdf-generation-service:/app/src/templates/. ./template-backup
+docker cp pdf-generation-service:/app/templates/. ./template-backup
 ```
 
 To restore templates from a backup:
 
 ```powershell
 # Copy templates from your local backup to the container
-docker cp ./template-backup/. pdf-generation-service:/app/src/templates
+docker cp ./template-backup/. pdf-generation-service:/app/templates
 ```

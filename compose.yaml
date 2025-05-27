@@ -1,17 +1,23 @@
 version: "3.8"
 
 services:
-  pdf-generation-service:
+  stasis-pdf:
     build:
       context: .
       dockerfile: Dockerfile
+      tags:
+        - stasis-pdf
     container_name: stasis
     environment:
       NODE_ENV: production
+      TEMPLATES_DIR: /app/templates
     ports:
       - 7070:7070
+    # Fix permissions when container starts
+    user: "root"
+    command: bash -c "chmod -R 777 /app/templates && chown -R pwuser:pwuser /app/templates && su pwuser -c 'node /app/dist/index.js'"
     volumes:
-      - pdf_templates:/app/src/templates # Use named volume for template persistence
+      - pdf_templates:/app/templates:rw # Mount to /app/templates with read-write permissions
 
 volumes:
   pdf_templates:

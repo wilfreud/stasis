@@ -5,8 +5,7 @@ import { existsSync } from "fs";
 import path from "path";
 import { TemplateDeleteRequest, TemplateUploadRequest } from "@/types/index.js";
 
-const templatesDir =
-  process.env.TEMPLATES_DIR || path.resolve("src", "templates");
+const templatesDir = process.env.TEMPLATES_DIR || path.resolve("templates");
 
 /**
  * Lists all available templates in the templates directory
