@@ -2,6 +2,12 @@
   "name": "pdf-generator",
   "version": "1.0.0",
   "type": "module",
+  "licenses": [
+    {
+      "type": "ISC",
+      "url": "https://opensource.org/license/isc-license-txt/"
+    }
+  ],
   "description": "A Playwright based PDF generator, with support for HBS file compilation",
   "main": "index.js",
   "scripts": {
