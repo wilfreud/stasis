@@ -12,13 +12,22 @@ import { mockInvoiceData } from "src/mockdata.js";
 const browserManagerService = new BrowserManagerService();
 const handlebarsService = new HandlebarsService();
 
+/**
+ * Health check endpoint
+ * Returns service health status and information
+ */
 export const healthCheck = (_: Request, res: Response) => {
-  res.json({
-    message: "Playwright based PDF generator",
+  res.status(200).json({
+    status: "OK",
+    service: "Playwright based PDF generator",
     timestamp: new Date().toISOString(),
   });
 };
 
+/**
+ * Test PDF generation endpoint
+ * Generates a sample PDF using test data and default template
+ */
 export const testPdfGeneration = async (_req: Request, res: Response) => {
   try {
     const template = handlebarsService.compileTemplate(
@@ -40,6 +49,7 @@ export const testPdfGeneration = async (_req: Request, res: Response) => {
       },
     };
 
+    // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     const pdfBuffer = await browserManagerService.renderPage(
       template,
@@ -49,10 +59,14 @@ export const testPdfGeneration = async (_req: Request, res: Response) => {
       "Content-Disposition",
       `attachment; filename="receipt-${Date.now()}.pdf"`,
     );
-    res.status(200).send(pdfBuffer);
+    res.status(201).send(pdfBuffer); // 201 Created is proper for resource creation
   } catch (error) {
     console.error("Error generating receipt:", error);
-    res.status(500).json({ error: "Failed to generate receipt PDF" });
+    res.status(500).json({
+      status: "error",
+      message: "Failed to generate receipt PDF",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -63,19 +77,28 @@ export const generatePdf = async (
   const { data, pdfOptions, templateId, customTemplate, outputFileName } =
     req.body;
 
-  // Basic data validation
+  // Basic data validation with proper REST error responses
   if (!data) {
-    res.status(400).json({ error: "Data is required to generate PDF" });
+    res.status(400).json({
+      status: "error",
+      message: "Data is required to generate PDF",
+    });
     return;
   }
 
   if (typeof data !== "object") {
-    res.status(400).json({ error: "Data must be an object" });
+    res.status(400).json({
+      status: "error",
+      message: "Data must be an object",
+    });
     return;
   }
 
-  if (!templateId) {
-    res.status(400).json({ error: "Template ID is required" });
+  if (!templateId && !customTemplate) {
+    res.status(400).json({
+      status: "error",
+      message: "Either templateId or customTemplate is required",
+    });
     return;
   }
 
@@ -84,21 +107,33 @@ export const generatePdf = async (
   // Either use custom template or load from file
   if (customTemplate) {
     templateContent = customTemplate;
-  } else {
+  } else if (templateId) {
     const templatePath = resolve(".", "src", "templates", `${templateId}.hbs`);
 
     // Check if the template file exists
     if (!existsSync(templatePath)) {
-      res.status(404).json({ error: "Template not found" });
+      res.status(404).json({
+        status: "error",
+        message: "Template not found",
+        resourceId: templateId,
+      });
       return;
     }
 
     templateContent = readFileSync(templatePath, "utf-8");
+  } else {
+    // This should never happen due to earlier validation
+    res.status(400).json({
+      status: "error",
+      message: "Invalid request parameters",
+    });
+    return;
   }
 
   try {
     const template = handlebarsService.compileTemplate(templateContent, data);
 
+    // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     const pdfBuffer = await browserManagerService.renderPage(
       template,
@@ -106,37 +141,50 @@ export const generatePdf = async (
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${outputFileName || `receipt-${Date.now()}.pdf`}"`,
+      `attachment; filename="${outputFileName || `document-${Date.now()}.pdf`}"`,
     );
-    res.status(200).send(pdfBuffer);
+    res.status(201).send(pdfBuffer); // 201 Created is proper for resource creation
   } catch (error) {
-    console.error("Error generating receipt:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to generate receipt PDF", error: error });
+    console.error("Error generating PDF document:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to generate PDF document",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
+/**
+ * Generate PDF from raw HTML
+ * Creates a PDF document using supplied raw HTML and data
+ */
 export const generatePdfFromRawHtml = async (
   req: Request<any, any, GeneratePdfFromRawHtmlQueryParam>,
   res: Response,
 ) => {
   const { rawHtml, data, outputFileName, pdfOptions } = req.body;
 
-  // basic data validation
+  // Basic data validation with proper REST error responses
   if (!rawHtml || typeof rawHtml !== "string") {
-    res.status(400).json({ error: "Raw HTML is required to generate PDF" });
+    res.status(400).json({
+      status: "error",
+      message: "Raw HTML is required to generate PDF",
+    });
     return;
   }
 
   if (!data || typeof data !== "object") {
-    res.status(400).json({ error: "Data must be an object" });
+    res.status(400).json({
+      status: "error",
+      message: "Data must be an object",
+    });
     return;
   }
 
   try {
     const template = handlebarsService.compileTemplate(rawHtml, data);
 
+    // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     const pdfBuffer = await browserManagerService.renderPage(
       template,
@@ -144,11 +192,15 @@ export const generatePdfFromRawHtml = async (
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${outputFileName || `receipt-${Date.now()}.pdf`}"`,
+      `attachment; filename="${outputFileName || `document-${Date.now()}.pdf`}"`,
     );
-    res.status(200).send(pdfBuffer);
+    res.status(201).send(pdfBuffer); // 201 Created is proper for resource creation
   } catch (error) {
-    console.error("Error generating receipt:", error);
-    res.status(500).json({ error: "Failed to generate receipt PDF" });
+    console.error("Error generating PDF document:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to generate PDF document",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

@@ -34,6 +34,7 @@ src/
 - Keep controllers thin – delegate business logic to services
 - Implement lightweight dependency injection where practical
 - Use `async/await` for all asynchronous operations
+- Follow REST conventions for API endpoints
 
 ## Error Handling Patterns
 

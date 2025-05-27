@@ -21,14 +21,15 @@ const port = 7070;
 
 const browserManagerService = new BrowserManagerService();
 
-// Define the root path with a greeting message
-app.get("/", healthCheck);
+// API Routes following REST standards
+app.get("/api/health", healthCheck); // Health check endpoint
 
-app.get("/test", testPdfGeneration);
+// PDF document resources
+app.post("/api/documents", generatePdf); // Create PDF from template
+app.post("/api/documents/raw", generatePdfFromRawHtml); // Create PDF from raw HTML
 
-app.post("/generate-pdf", generatePdf);
-
-app.post("/generate-raw", generatePdfFromRawHtml);
+// Test endpoint (for development only)
+app.get("/api/documents/test", testPdfGeneration); // Should ideally be a POST in production
 
 // Start the server
 app.listen(port, () => {
