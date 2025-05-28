@@ -355,6 +355,8 @@ For major changes, please open an issue first to discuss proposed changes.
 
 ## Template Management UI
 
+![Stasis Logo](public/ui.png)
+
 The service includes a web-based template management interface that allows users to:
 
 1. Upload new Handlebars templates
