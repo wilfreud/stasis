@@ -73,10 +73,19 @@ export class HandlebarsService {
   }
 
   public compileTemplate(template: string, data: Record<string, any>): string {
+    // add time benchmarking
+    const start = process.hrtime();
+    console.debug("🛠️ Compiling Handlebars template...");
     const compiledTemplate = Handlebars.compile(template, {
       strict: true,
       noEscape: false,
     });
+    const end = process.hrtime(start);
+    const [seconds, nanoseconds] = end;
+    const timeInMs = (seconds * 1000 + nanoseconds / 1e6).toFixed(2);
+    console.debug(
+      `💡 Compiled Handlebars template in ${timeInMs}ms (${parseInt(timeInMs) / 1000}s)`,
+    );
     return compiledTemplate(data);
   }
 }

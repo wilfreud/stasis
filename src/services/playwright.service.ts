@@ -4,14 +4,30 @@ import type { PDFOptions } from "../types/index.js";
 
 class BrowserManagerService {
   private browser: Browser | null = null;
+  private readonly MAX_CONTEXTS = 10; // Maximum number of contexts to manage
+  private contexts: BrowserContext[] = [];
+  private lastUsedContextIndex = 0;
 
   public async initBrowser() {
     if (this.browser) return;
 
     this.browser = await chromium.launch({
       headless: true, // Set to false if you want to see the browser UI
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--disable-web-security",
+      ],
     });
+
+    // create initial contexts
+    for (let i = 0; i < this.MAX_CONTEXTS; i++) {
+      const context = await this.browser.newContext();
+      this.contexts.push(context);
+    }
   }
 
   public async closeBrowser() {
@@ -29,7 +45,6 @@ class BrowserManagerService {
   }
 
   public async createContext() {
-    console.debug("💭 Creating a new browser context...");
     const browserInstance = await this.getBrowser();
     return await browserInstance?.newContext();
   }
@@ -53,7 +68,7 @@ class BrowserManagerService {
     html: string,
     pdfOptions: PDFOptions = { format: "A4", printBackground: true },
   ): Promise<Buffer> {
-    console.log("Rendering page with HTML content...");
+    console.log("⚡Rendering page with HTML content...");
     let page: Page | undefined;
     try {
       page = await this.createPage();
