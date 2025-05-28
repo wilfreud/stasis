@@ -1,0 +1,2 @@
+# Python dependencies for benchmarking script
+aiohttp>=3.8.0
