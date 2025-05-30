@@ -161,7 +161,8 @@ export const generatePdfFromRawHtml = async (
   req: Request<any, any, GeneratePdfFromRawHtmlQueryParam>,
   res: Response,
 ) => {
-  const { rawHtml, data, outputFileName, pdfOptions } = req.body;
+  const { rawHtml, data, outputFileName, pdfOptions, loadExternalResources } =
+    req.body;
 
   // Basic data validation with proper REST error responses
   if (!rawHtml || typeof rawHtml !== "string") {
@@ -172,7 +173,7 @@ export const generatePdfFromRawHtml = async (
     return;
   }
 
-  if (!data || typeof data !== "object") {
+  if (data && typeof data !== "object") {
     res.status(400).json({
       status: "error",
       message: "Data must be an object",
@@ -181,13 +182,12 @@ export const generatePdfFromRawHtml = async (
   }
 
   try {
-    const template = handlebarsService.compileTemplate(rawHtml, data);
-
     // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     const pdfBuffer = await browserManagerService.renderPage(
-      template,
+      data ? handlebarsService.compileTemplate(rawHtml, data) : rawHtml,
       pdfOptions,
+      loadExternalResources ? { waitUntil: "networkidle" } : undefined,
     );
     res.setHeader(
       "Content-Disposition",

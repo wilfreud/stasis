@@ -78,12 +78,12 @@ pnpm start
 
 ### PDF Generation Endpoints
 
-| Endpoint              | Method | Description                   | Request Body              | Response           |
-| --------------------- | ------ | ----------------------------- | ------------------------- | ------------------ |
-| `/api/health`         | GET    | Service health status         | -                         | `application/json` |
-| `/api/documents`      | POST   | Generate PDF from template    | Template options and data | `application/pdf`  |
-| `/api/documents/raw`  | POST   | Generate PDF from raw HTML    | HTML content and data     | `application/pdf`  |
-| `/api/documents/test` | GET    | Test PDF generation (receipt) | -                         | `application/pdf`  |
+| Endpoint              | Method | Description                   | Request Body                 | Response           |
+| --------------------- | ------ | ----------------------------- | ---------------------------- | ------------------ |
+| `/api/health`         | GET    | Service health status         | -                            | `application/json` |
+| `/api/documents`      | POST   | Generate PDF from template    | Template options and data    | `application/pdf`  |
+| `/api/documents/raw`  | POST   | Generate PDF from raw HTML    | HTML content (optional data) | `application/pdf`  |
+| `/api/documents/test` | GET    | Test PDF generation (receipt) | -                            | `application/pdf`  |
 
 ### Template Management Endpoints
 
@@ -165,6 +165,8 @@ overwrite: "true"            // Optional boolean to allow overwriting existing t
 
 #### `POST /api/documents/raw` - Generate PDF from Raw HTML
 
+This endpoint accepts raw HTML input and optionally supports dynamic data injection using Handlebars templates. If no `data` is provided, the raw HTML is used directly to generate the PDF. Set `loadExternalResources` in case page needs external resources (e.g. tailwind via CDN)
+
 ```json
 {
   "rawHtml": "<html><body><h1>{{title}}</h1></body></html>",
@@ -174,34 +176,28 @@ overwrite: "true"            // Optional boolean to allow overwriting existing t
   "pdfOptions": {
     "format": "A4"
   },
-  "outputFileName": "document.pdf"
+  "outputFileName": "document.pdf",
+  "loadExternalResources": true
 }
 ```
+
+**Updated Behavior**:
+
+- If `data` is provided, it will be used to compile the Handlebars template.
+- If `data` is omitted, the `rawHtml` will be used as-is to generate the PDF.
 
 ### Response Formats
 
 #### Success Responses
 
-- **PDF Generation**: Returns the PDF binary with `Content-Type: application/pdf` and appropriate filename headers
-- **Template Management**: Returns JSON status and result information with appropriate HTTP status codes
-- **Health Check**: Returns JSON status information with HTTP 200
+- **PDF Generation**: Returns the PDF binary with `Content-Type: application/pdf` and appropriate filename headers.
 
 ```json
-// Health check response
-{
-  "status": "OK",
-  "service": "Playwright based PDF generator",
-  "timestamp": "2025-05-27T10:15:30.123Z"
-}
-
-// Template upload success response
 {
   "status": "success",
-  "message": "Template 'invoice' has been created"
+  "message": "PDF generated successfully",
+  "fileName": "document.pdf"
 }
-
-// Template list response
-["thermal-receipt", "invoice", "report"]
 ```
 
 #### Error Responses
@@ -212,7 +208,7 @@ All error responses follow a consistent format with HTTP status codes:
 {
   "status": "error",
   "message": "Failed to generate PDF document",
-  "error": "Template compilation error: Invalid syntax at line 12"
+  "error": "Raw HTML is required to generate PDF"
 }
 ```
 

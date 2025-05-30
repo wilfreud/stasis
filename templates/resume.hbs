@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume - {{name}}</title>
+
+    <!-- Tailwind CSS v4 - Browser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .shape {
+        position: absolute;
+        border-radius: 9999px;
+        opacity: 0.05;
+        z-index: 0;
+      }
+      .shape-1 {
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, #ffffff 0%, transparent 70%);
+        top: 20%;
+        left: 5%;
+      }
+      .shape-2 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, #ffffff 0%, transparent 70%);
+        bottom: 10%;
+        right: 10%;
+      }
+    </style>
+  </head>
+
+  <body class="bg-black text-white relative overflow-hidden p-8">
+
+    <!-- Background Shapes -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+
+    <!-- Resume Content -->
+    <div class="relative z-10 max-w-3xl mx-auto">
+      <!-- Header -->
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold tracking-wide uppercase">{{name}}</h1>
+        <p class="text-sm mt-2">Full-Stack Developer • Open Source Contributor • Tech Enthusiast</p>
+      </header>
+
+      <!-- Summary -->
+      <section class="mb-6">
+        <h2 class="text-lg font-semibold uppercase mb-2">Profile</h2>
+        <p class="text-sm text-gray-300">
+          Experienced software developer with a passion for crafting clean, efficient code and building scalable web applications. Excellent communicator and team player.
+        </p>
+      </section>
+
+      <!-- Skills -->
+      <section class="mb-6">
+        <h2 class="text-lg font-semibold uppercase mb-2">Skills</h2>
+        <ul class="grid grid-cols-2 gap-1 text-sm text-gray-300 list-disc list-inside">
+          <li>JavaScript / TypeScript</li>
+          <li>React / Vue / Svelte</li>
+          <li>Node.js / Express</li>
+          <li>Tailwind CSS</li>
+          <li>REST & GraphQL APIs</li>
+          <li>PostgreSQL / MongoDB</li>
+        </ul>
+      </section>
+
+      <!-- Experience -->
+      <section class="mb-6">
+        <h2 class="text-lg font-semibold uppercase mb-2">Experience</h2>
+        <div class="mb-4">
+          <h3 class="font-semibold text-white">Senior Developer – TechCorp</h3>
+          <p class="text-sm text-gray-400 italic">Jan 2022 – Present</p>
+          <ul class="list-disc list-inside text-sm text-gray-300">
+            <li>Led development of a React-based admin dashboard.</li>
+            <li>Implemented real-time features using WebSockets.</li>
+            <li>Mentored junior developers and improved code review workflow.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white">Frontend Developer – DevStudio</h3>
+          <p class="text-sm text-gray-400 italic">Aug 2019 – Dec 2021</p>
+          <ul class="list-disc list-inside text-sm text-gray-300">
+            <li>Built responsive websites with Vue and Tailwind CSS.</li>
+            <li>Improved page load speed by optimizing image delivery and lazy loading.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Education -->
+      <section class="mb-6">
+        <h2 class="text-lg font-semibold uppercase mb-2">Education</h2>
+        <p class="text-sm text-gray-300">
+          B.Sc. in Computer Science – University of Somewhere<br />
+          <span class="text-gray-400 italic">Graduated 2018</span>
+        </p>
+      </section>
+
+      <!-- Contact -->
+      <section class="text-center text-sm text-gray-400 mt-12">
+        <p>Email: you@example.com • Website: www.example.dev • GitHub: @yourhandle</p>
+      </section>
+    </div>
+  </body>
+</html>

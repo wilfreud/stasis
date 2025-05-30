@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 import type { Browser, Page, BrowserContext } from "playwright";
-import type { PDFOptions } from "../types/index.js";
+import type { PDFOptions, TemplateRenderOptions } from "../types/index.js";
 
 class BrowserManagerService {
   private browser: Browser | null = null;
@@ -67,6 +67,7 @@ class BrowserManagerService {
   public async renderPage(
     html: string,
     pdfOptions: PDFOptions = { format: "A4", printBackground: true },
+    renderOptions: TemplateRenderOptions = { waitUntil: "load" },
   ): Promise<Buffer> {
     console.log("⚡Rendering page with HTML content...");
     let page: Page | undefined;
@@ -74,7 +75,13 @@ class BrowserManagerService {
       page = await this.createPage();
       if (!page) throw new Error("Failed to create a new page");
 
-      await page.setContent(html);
+      await page.setContent(html, renderOptions);
+
+      // page.addScriptTag({
+      //   url: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4",
+      // });
+
+      await page.emulateMedia({ media: "print" }); // or 'screen' if that yields better results
 
       return await page.pdf(pdfOptions);
     } catch (error) {

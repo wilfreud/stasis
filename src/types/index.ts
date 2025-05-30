@@ -28,9 +28,13 @@ export interface GeneratePdfQueryParam extends BaseDocumentRequest {
 /**
  * Request body for PDF generation from raw HTML
  */
-export interface GeneratePdfFromRawHtmlQueryParam extends BaseDocumentRequest {
+export interface GeneratePdfFromRawHtmlQueryParam
+  extends Partial<BaseDocumentRequest> {
   /** Raw HTML content to render as PDF */
   rawHtml: string;
+
+  /** Enable wait for external resources full load before rendering (workaround for black pages issue) */
+  loadExternalResources?: boolean;
 }
 
 /**
@@ -68,3 +72,12 @@ export interface TemplateDeleteRequest extends Request {
     pageToken: string;
   };
 }
+
+export type TemplateRenderOptions = Partial<
+  Parameters<Page["setContent"]>[1]
+> & {
+  // /** Enable Tailwind CSS support (v4 by default) */
+  // enableTailwindCss?: boolean;
+  // /** Force Tailwud to v3 */
+  // enableTailwindV3?: boolean;
+};
