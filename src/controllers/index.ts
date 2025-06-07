@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import {
   GeneratePdfFromRawHtmlQueryParam,
   GeneratePdfQueryParam,
+  TemplateRenderOptions,
 } from "../types/index.js";
 import { resolve } from "path";
 import { readFileSync, existsSync } from "fs";
@@ -72,8 +73,15 @@ export const generatePdf = async (
   req: Request<any, any, GeneratePdfQueryParam>,
   res: Response,
 ) => {
-  const { data, pdfOptions, templateId, customTemplate, outputFileName } =
-    req.body;
+  const {
+    data,
+    pdfOptions,
+    templateId,
+    customTemplate,
+    outputFileName,
+    useTailwindCss = false,
+    loadExternalResources = false,
+  } = req.body;
 
   // Basic data validation with proper REST error responses
   if (!data) {
@@ -134,9 +142,20 @@ export const generatePdf = async (
 
     // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
+    const renderOptions: TemplateRenderOptions = {};
+
+    if (loadExternalResources) {
+      renderOptions.waitUntil = "networkidle"; // Wait for all resources to load
+    }
+
+    if (useTailwindCss) {
+      renderOptions.useTailwindCss = true; // Enable Tailwind CSS support
+    }
+
     const pdfBuffer = await browserManagerService.renderPage(
       template,
       pdfOptions,
+      renderOptions,
     );
     res.setHeader(
       "Content-Disposition",
@@ -161,8 +180,14 @@ export const generatePdfFromRawHtml = async (
   req: Request<any, any, GeneratePdfFromRawHtmlQueryParam>,
   res: Response,
 ) => {
-  const { rawHtml, data, outputFileName, pdfOptions, loadExternalResources } =
-    req.body;
+  const {
+    rawHtml,
+    data,
+    outputFileName,
+    pdfOptions,
+    loadExternalResources,
+    useTailwindCss,
+  } = req.body;
 
   // Basic data validation with proper REST error responses
   if (!rawHtml || typeof rawHtml !== "string") {
@@ -184,10 +209,19 @@ export const generatePdfFromRawHtml = async (
   try {
     // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
+    const renderOptions: TemplateRenderOptions = {};
+
+    if (loadExternalResources) {
+      renderOptions.waitUntil = "networkidle"; // Wait for all resources to load
+    }
+
+    if (useTailwindCss) {
+      renderOptions.useTailwindCss = true; // Enable Tailwind CSS support
+    }
     const pdfBuffer = await browserManagerService.renderPage(
       data ? handlebarsService.compileTemplate(rawHtml, data) : rawHtml,
       pdfOptions,
-      loadExternalResources ? { waitUntil: "networkidle" } : undefined,
+      renderOptions,
     );
     res.setHeader(
       "Content-Disposition",

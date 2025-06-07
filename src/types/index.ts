@@ -13,6 +13,10 @@ interface BaseDocumentRequest {
   pdfOptions?: PDFOptions;
   /** Custom output filename for the PDF document */
   outputFileName?: string;
+  /** Enable wait for external resources full load before rendering (workaround for black pages issue) */
+  loadExternalResources?: boolean;
+  /** Enable Tailwind CSS support (v4 by default) */
+  useTailwindCss?: boolean;
 }
 
 /**
@@ -32,9 +36,6 @@ export interface GeneratePdfFromRawHtmlQueryParam
   extends Partial<BaseDocumentRequest> {
   /** Raw HTML content to render as PDF */
   rawHtml: string;
-
-  /** Enable wait for external resources full load before rendering (workaround for black pages issue) */
-  loadExternalResources?: boolean;
 }
 
 /**
@@ -76,8 +77,8 @@ export interface TemplateDeleteRequest extends Request {
 export type TemplateRenderOptions = Partial<
   Parameters<Page["setContent"]>[1]
 > & {
-  // /** Enable Tailwind CSS support (v4 by default) */
-  // enableTailwindCss?: boolean;
-  // /** Force Tailwud to v3 */
+  /** Enable Tailwind CSS support (v4 by default) */
+  useTailwindCss?: boolean;
+  // /** Force Tailwind to v3 */
   // enableTailwindV3?: boolean;
 };

@@ -67,9 +67,15 @@ class BrowserManagerService {
   public async renderPage(
     html: string,
     pdfOptions: PDFOptions = { format: "A4", printBackground: true },
-    renderOptions: TemplateRenderOptions = { waitUntil: "load" },
+    renderOptions: TemplateRenderOptions = {
+      waitUntil: "load",
+      useTailwindCss: false,
+    },
   ): Promise<Buffer> {
-    console.log("⚡Rendering page with HTML content...");
+    console.log(
+      "⚡Rendering page with HTML content..." +
+        (renderOptions.useTailwindCss ? " (with Tailwind CSS)" : ""),
+    );
     let page: Page | undefined;
     try {
       page = await this.createPage();
@@ -77,9 +83,11 @@ class BrowserManagerService {
 
       await page.setContent(html, renderOptions);
 
-      // page.addScriptTag({
-      //   url: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4",
-      // });
+      if (renderOptions?.useTailwindCss) {
+        await page.addScriptTag({
+          url: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4",
+        });
+      }
 
       await page.emulateMedia({ media: "print" }); // or 'screen' if that yields better results
 
