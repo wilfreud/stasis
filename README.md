@@ -6,13 +6,17 @@ A high-performance (well, still gotta benchmark first), RESTful Express.js "micr
 
 ## Features
 
-- RESTful API architecture following standard conventions
-- Converts HTML templates into PDFs with dynamic data injection
-- Supports both predefined Handlebars templates and raw HTML input
-- Fully typed TypeScript implementation with robust error handling
-- Built with Playwright for consistent cross-platform rendering
-- Docker-ready for containerized deployment
-- Comprehensive performance monitoring middleware
+- **RESTful API architecture** following standard conventions
+- **Template-based PDF generation** from Handlebars templates with dynamic data injection
+- **Raw HTML to PDF conversion** with optional template compilation
+- **Built-in Tailwind CSS support** for modern styling (v4 by default)
+- **File upload management** with drag-and-drop template interface
+- **Type-safe TypeScript implementation** with comprehensive error handling
+- **Playwright-powered rendering** for consistent cross-platform PDF output
+- **Docker-ready containerization** for scalable deployment
+- **Performance monitoring middleware** with detailed benchmarking
+- **Template persistence** with volume mapping for Docker deployments
+- **Security features** including CSRF protection and file validation
 
 ## Technology Stack
 
@@ -23,8 +27,23 @@ A high-performance (well, still gotta benchmark first), RESTful Express.js "micr
 | **Templating**       | Handlebars   | Template engine for dynamic HTML                 |
 | **Language**         | TypeScript   | Type-safe JavaScript superset                    |
 | **Package Mgmt**     | PNPM         | Fast, disk-efficient package manager             |
+| **Testing**          | Vitest       | Fast unit testing framework                      |
 | **Containerization** | Docker       | Application containerization                     |
 | **Styling**          | Tailwind CSS | Utility-first CSS framework for template styling |
+| **Security**         | Helmet       | HTTP security headers middleware                 |
+
+## Core Dependencies
+
+The project uses the following main dependencies:
+
+- **Framework**: Express.js v5.1.0 with TypeScript
+- **PDF Generation**: Playwright v1.52.0 for headless browser automation
+- **Templating**: Handlebars v4.7.8 for dynamic HTML templating
+- **Date Handling**: date-fns v4.1.0 with French locale support
+- **File Upload**: Multer v2.0.0 for multipart/form-data handling
+- **Security**: Helmet v8.1.0 for HTTP security headers, CORS v2.8.5
+- **Testing**: Vitest v3.1.4 for fast unit testing
+- **Code Quality**: Prettier v3.5.3 for code formatting
 
 ## Project Structure
 
@@ -34,20 +53,35 @@ pdf-generator/
 │   ├── index.ts                     # Server entry point
 │   ├── mockdata.ts                  # Sample data for testing
 │   ├── controllers/
-│   │   └── index.ts                 # HTTP request handlers with response logic
+│   │   ├── index.ts                 # HTTP request handlers with response logic
+│   │   └── template.controller.ts   # Template management endpoints
 │   ├── middlewares/
-│   │   └── benchmark.middleware.ts  # Performance monitoring middleware
+│   │   ├── benchmark.middleware.ts  # Performance monitoring middleware
+│   │   └── multer.middleware.ts     # File upload handling middleware
 │   ├── services/
 │   │   ├── handlebars.service.ts    # Template compilation service
+│   │   ├── handlebars.service.test.ts # Unit tests for Handlebars service
 │   │   └── playwright.service.ts    # PDF generation and browser management
-│   ├── templates/
-│   │   └── thermal-receipt.hbs      # Predefined Handlebars templates
-│   ├── types/
-│   │   └── index.ts                 # TypeScript interfaces and type definitions
-│   └── utils/
-│       └── dto.utils.ts             # Data validation utilities
+│   └── types/
+│       └── index.ts                 # TypeScript interfaces and type definitions
+├── templates/
+│   ├── thermal-receipt.hbs          # Predefined Handlebars templates
+│   ├── invoice.hbs                  # Invoice template
+│   ├── resume.hbs                   # Resume template
+│   └── tw.hbs                       # Tailwind CSS demo template
+├── public/
+│   ├── index.html                   # Template management UI
+│   ├── stasis.png                   # Application logo
+│   └── ui.png                       # UI screenshot
+├── scripts/
+│   ├── build-fix.js                 # Post-build script for path aliasing
+│   ├── benchmark.py                 # Python benchmark script
+│   ├── templates-setup.js           # Template initialization script
+│   └── requirements.txt             # Python dependencies for benchmarking
 ├── Dockerfile                       # Container definition
-└── compose.yaml                     # Multi-container orchestration
+├── compose.yaml                     # Multi-container orchestration
+├── vitest.config.ts                 # Testing configuration
+└── tsconfig.json                    # TypeScript configuration
 ```
 
 ## Getting Started
@@ -55,8 +89,10 @@ pdf-generator/
 ### Prerequisites
 
 - Node.js v18+ (LTS recommended)
-- PNPM package manager
+- PNPM package manager (v10+ recommended)
 - Docker (optional, for containerized deployment)
+
+**Note**: This project uses ES modules (`"type": "module"` in package.json) and requires Node.js v18+ for full compatibility.
 
 ### Development Setup
 
@@ -67,11 +103,38 @@ pnpm install
 # Run development server with hot reloading
 pnpm dev
 
+# Format code with Prettier
+pnpm format
+
+# Build TypeScript for development
+pnpm build:dev
+
 # Build production artifacts
 pnpm build
 
 # Start production server
 pnpm start
+
+# Run unit tests
+pnpm test
+```
+
+## Configuration
+
+The service can be configured using environment variables:
+
+| Variable        | Description                         | Default Value |
+| --------------- | ----------------------------------- | ------------- |
+| `PORT`          | Server port number                  | `7070`        |
+| `NODE_ENV`      | Environment mode                    | `development` |
+| `TEMPLATES_DIR` | Directory path for template storage | `./templates` |
+
+Example `.env` file:
+
+```env
+PORT=8080
+NODE_ENV=production
+TEMPLATES_DIR=/app/custom-templates
 ```
 
 ## REST API Reference
@@ -103,13 +166,15 @@ This endpoint accepts `multipart/form-data` with the following fields:
 templateName: "invoice"      // Name to identify the template (without extension)
 templateFile: [Binary File]  // .hbs or .handlebars file content
 overwrite: "true"            // Optional boolean to allow overwriting existing templates
+pageToken: "auth-token"      // Security token for authentication
 ```
 
 #### `DELETE /api/templates/delete` - Delete a Template
 
 ```json
 {
-  "templateName": "invoice" // Name of the template to delete (without extension)
+  "templateName": "invoice", // Name of the template to delete (without extension)
+  "pageToken": "auth-token" // Security token for authentication
 }
 ```
 
@@ -165,7 +230,7 @@ overwrite: "true"            // Optional boolean to allow overwriting existing t
 
 #### `POST /api/documents/raw` - Generate PDF from Raw HTML
 
-This endpoint accepts raw HTML input and optionally supports dynamic data injection using Handlebars templates. If no `data` is provided, the raw HTML is used directly to generate the PDF. Set `loadExternalResources` in case page needs external resources (e.g. tailwind via CDN)
+This endpoint accepts raw HTML input and optionally supports dynamic data injection using Handlebars templates. If no `data` is provided, the raw HTML is used directly to generate the PDF. Set `loadExternalResources` to true if the page needs external resources (e.g. Tailwind via CDN). The `useTailwindCss` option enables built-in Tailwind CSS support.
 
 ```json
 {
@@ -177,7 +242,8 @@ This endpoint accepts raw HTML input and optionally supports dynamic data inject
     "format": "A4"
   },
   "outputFileName": "document.pdf",
-  "loadExternalResources": true
+  "loadExternalResources": true,
+  "useTailwindCss": true
 }
 ```
 
@@ -281,12 +347,35 @@ The service extends Handlebars with additional helper functions:
 | `or`          | Logical OR operation       | `{{#if (or cond1 cond2)}}...{{/if}}` |
 | `currentDate` | Get current date           | `{{currentDate "yyyy-MM-dd"}}`       |
 
+**Note**: Date formatting uses French locale (fr) by default and supports all date-fns format patterns.
+
 ### Template Creation Process
 
-1. Create a new `.hbs` file in the templates directory (e.g., `invoice.hbs`)
+1. Create a new `.hbs` or `.handlebars` file in the templates directory (e.g., `invoice.hbs`)
 2. Use Handlebars syntax for dynamic content injection
-3. Include any required CSS for styling (inline or via Tailwind)
-4. Use the template by referencing its ID in API calls: `"templateId": "invoice"`
+3. Include any required CSS for styling (inline or via Tailwind CSS support)
+4. Upload via the web interface or place directly in the templates directory
+5. Reference the template by its ID (filename without extension) in API calls: `"templateId": "invoice"`
+
+### Supported Template Features
+
+- **File formats**: `.hbs` and `.handlebars` extensions
+- **Built-in CSS frameworks**: Tailwind CSS v4 support with `useTailwindCss` option
+- **External resources**: Load external stylesheets and scripts with `loadExternalResources`
+- **Custom styling**: Inline CSS and external stylesheet references
+- **Template inheritance**: Handlebars partials and layouts (if configured)
+- **File size limits**: Maximum 2MB per template file
+
+### Included Templates
+
+The project comes with several pre-built templates:
+
+1. **thermal-receipt.hbs**: Point-of-sale thermal receipt template
+2. **invoice.hbs**: Professional invoice template
+3. **resume.hbs**: Resume/CV template
+4. **tw.hbs**: Tailwind CSS demonstration template
+
+These templates serve as examples and can be customized or replaced as needed.
 
 ## Architecture & Design
 
@@ -333,6 +422,29 @@ The service includes built-in performance monitoring that tracks:
 - PDF rendering duration
 - Memory usage statistics
 
+## Testing
+
+The project includes unit tests using Vitest for fast and reliable testing:
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode (development)
+pnpm test --watch
+```
+
+Tests are located alongside their corresponding source files (e.g., `handlebars.service.test.ts`).
+
+## Scripts and Utilities
+
+The project includes several utility scripts in the `scripts/` directory:
+
+- **build-fix.js**: Post-build script that adds path aliasing configuration
+- **benchmark.py**: Python-based benchmarking tool for performance testing
+- **templates-setup.js**: Script for initializing template directory structure
+- **run-benchmark.bat**: Batch file for running benchmarks on Windows
+
 ## License
 
 ISC License
@@ -351,37 +463,33 @@ For major changes, please open an issue first to discuss proposed changes.
 
 ## Template Management UI
 
-![Stasis Logo](public/ui.png)
+![Template Management UI](public/ui.png)
 
-The service includes a web-based template management interface that allows users to:
+The service includes a web-based template management interface (`public/index.html`) that allows users to:
 
-1. Upload new Handlebars templates
-2. View existing templates
-3. Delete templates when no longer needed
-
-When running in Docker, templates are persisted to the host machine through a volume mapping, ensuring they remain available even after container restarts or rebuilds.
-
-To access this interface, navigate to the root URL of the service in a web browser:
-
-```
-http://localhost:7070
-```
+1. **Upload new Handlebars templates** with drag-and-drop support
+2. **View existing templates** in a clean, organized list
+3. **Delete templates** when no longer needed
+4. **Overwrite protection** with optional toggle for existing templates
 
 ### Security Features
 
-The template management interface includes security features to prevent unauthorized template uploads:
+The template management interface includes security features:
 
-- Token-based authentication between the frontend and API
-- File extension validation (only `.hbs` and `.handlebars` files)
-- File size limits (max 2MB)
-- Protection against template overwriting (optional toggle)
-- Input validation and sanitization for template names
+- **Token-based authentication** between the frontend and API
+- **File extension validation** (only `.hbs` and `.handlebars` files)
+- **File size limits** (max 2MB per template)
+- **Input validation and sanitization** for template names
+- **CSRF protection** through pageToken mechanism
 
 ### Using the Template Manager
 
-1. **View Templates**: All existing templates are displayed in a list
+1. **Access the UI**: Navigate to `http://localhost:7070` in your browser
 2. **Upload Template**:
    - Enter a template name (without extension)
    - Select a `.hbs` file or drag and drop
-   - Choose whether to overwrite existing templates
-3. **Delete Template**: Click the delete button next to any template in the list
+   - Toggle overwrite protection if needed
+3. **View Templates**: All existing templates are displayed automatically
+4. **Delete Template**: Click the delete button next to any template
+
+When running in Docker, templates are persisted through volume mapping, ensuring they remain available after container restarts.
