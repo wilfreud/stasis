@@ -27,8 +27,6 @@ app.use(benchmarkMiddleware);
 // Set the network port
 const port = 7070;
 
-const browserManagerService = new BrowserManagerService();
-
 // API Routes following REST standards
 app.get("/api/health", healthCheck); // Health check endpoint
 
@@ -51,17 +49,4 @@ app.delete("/api/templates/delete", deleteTemplate);
 // Start the server
 app.listen(port, () => {
   console.log(`🚀 Server is running at http://localhost:${port}`);
-});
-
-// Handle server shutdown gracefully
-process.on("SIGINT", async () => {
-  console.log("🌀 Server is shutting down...");
-  await browserManagerService.closeBrowser(); // Ensure all browser instances are closed
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("🌀 Server is shutting down...");
-  await browserManagerService.closeBrowser(); // Ensure all browser instances are closed
-  process.exit(0);
 });

@@ -8,7 +8,7 @@
       "url": "https://opensource.org/license/isc-license-txt/"
     }
   ],
-  "description": "A Playwright based PDF generator, with support for HBS file compilation",
+  "description": "A RESTful Express.js microservice for generating PDFs from Handlebars templates and raw HTML using Playwright headless browser, with template management, file upload capabilities, and built-in Tailwind CSS support",
   "main": "index.js",
   "scripts": {
     "dev": "pnpm tsx --watch src/index.ts",

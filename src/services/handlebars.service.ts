@@ -70,6 +70,45 @@ export class HandlebarsService {
       }
       return `${day}/${month}/${year}`;
     });
+
+    // Helper modulo pour les lignes alternées
+    log("Registering Handlebars helper: modulo");
+    Handlebars.registerHelper("modulo", function (value: number, mod: number) {
+      return value % mod;
+    });
+
+    // Helper eq pour comparer des valeurs
+    log("Registering Handlebars helper: eq");
+    Handlebars.registerHelper("eq", function (a: any, b: any) {
+      return a === b;
+    });
+
+    // Helper and pour combiner des conditions
+    log("Registering Handlebars helper: and");
+    Handlebars.registerHelper("and", function () {
+      for (let i = 0; i < arguments.length - 1; i++) {
+        if (!arguments[i]) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    // Helper multiply pour calculer les montants
+    log("Registering Handlebars helper: multiply");
+    Handlebars.registerHelper("multiply", function (a: number, b: number) {
+      return (a * b).toLocaleString();
+    });
+
+    // Helper join pour les tableaux
+    log("Registering Handlebars helper: join");
+    Handlebars.registerHelper(
+      "join",
+      function (array: any[], separator: string) {
+        if (!Array.isArray(array)) return "";
+        return array.join(separator);
+      },
+    );
   }
 
   public compileTemplate(template: string, data: Record<string, any>): string {

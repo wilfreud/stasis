@@ -237,3 +237,16 @@ export const generatePdfFromRawHtml = async (
     });
   }
 };
+
+// Handle server shutdown gracefully
+process.on("SIGINT", async () => {
+  console.log("🌀 Server is shutting down, closing browser...");
+  await browserManagerService.closeBrowser(); // Ensure all browser instances are closed
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  console.log("🌀 Server is shutting down, closing browser...");
+  await browserManagerService.closeBrowser(); // Ensure all browser instances are closed
+  process.exit(0);
+});
