@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY_NAME: xcommodore64
-  IMAGE_NAME: statis
+  IMAGE_NAME: stasis
 
 jobs:
   test:

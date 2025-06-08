@@ -2,6 +2,7 @@
 
 - Move from tailwind CDN to static minified files
 - Add support for raw HTML **ONLY**
+- Versioning (lookout proper versioning system)
 
 ## TODO: Environment Variables
 

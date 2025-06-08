@@ -1,24 +1,20 @@
 version: "3.8"
-
 services:
   stasis-pdf:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      tags:
-        - stasis-pdf
-    container_name: stasis
+    image: "xcommodore64/stasis:latest"
+    container_name: stasis-pdf
     environment:
       NODE_ENV: production
       TEMPLATES_DIR: /app/templates
     ports:
-      - 7070:7070
-    # Fix permissions when container starts
-    user: "root"
-    command: bash -c "chmod -R 777 /app/templates && chown -R pwuser:pwuser /app/templates && su pwuser -c 'node /app/dist/index.js'"
+      - "127.0.0.1:7070:7070"
+    user: root
+    command: 'bash -c "chmod -R 777 /app/templates && chown -R pwuser:pwuser /app/templates && su pwuser -c ''node /app/dist/index.js''"'
     volumes:
-      - pdf_templates:/app/templates:rw # Mount to /app/templates with read-write permissions
-
+      - "stasis_pdf_templates:/app/templates:rw"
+    networks:
+      - intercom
 volumes:
-  pdf_templates:
-    # Named volume for templates that persists across container recreations
+  stasis_pdf_templates: null
+networks:
+  intercom: null
