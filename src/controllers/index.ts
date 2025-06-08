@@ -161,6 +161,7 @@ export const generatePdf = async (
       "Content-Disposition",
       `attachment; filename="${outputFileName || `document-${Date.now()}.pdf`}"`,
     );
+
     res.status(201).send(pdfBuffer); // 201 Created is proper for resource creation
   } catch (error) {
     console.error("Error generating PDF document:", error);

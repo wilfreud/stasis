@@ -4,9 +4,9 @@ import type { PDFOptions, TemplateRenderOptions } from "../types/index.js";
 
 class BrowserManagerService {
   private browser: Browser | null = null;
-  private readonly MAX_CONTEXTS = 10; // Maximum number of contexts to manage
-  private contexts: BrowserContext[] = [];
-  private lastUsedContextIndex = 0;
+  // private readonly MAX_CONTEXTS = 10; // Maximum number of contexts to manage
+  // private contexts: BrowserContext[] = [];
+  // private lastUsedContextIndex = 0;
 
   public async initBrowser() {
     if (this.browser) return;
@@ -24,10 +24,10 @@ class BrowserManagerService {
     });
 
     // create initial contexts
-    for (let i = 0; i < this.MAX_CONTEXTS; i++) {
-      const context = await this.browser.newContext();
-      this.contexts.push(context);
-    }
+    // for (let i = 0; i < this.MAX_CONTEXTS; i++) {
+    //   const context = await this.browser.newContext();
+    //   this.contexts.push(context);
+    // }
   }
 
   public async closeBrowser() {
