@@ -8,6 +8,7 @@ services:
       TEMPLATES_DIR: /app/templates
     ports:
       - "127.0.0.1:7070:7070"
+      - "127.0.0.1:7071:7070"
     user: root
     command: 'bash -c "chmod -R 777 /app/templates && chown -R pwuser:pwuser /app/templates && su pwuser -c ''node /app/dist/index.js''"'
     volumes:

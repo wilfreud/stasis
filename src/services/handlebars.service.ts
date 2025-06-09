@@ -1,11 +1,14 @@
 import Handlebars from "handlebars";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export class HandlebarsService {
   constructor() {
     this.registerHelpers();
   }
+
+  private preCompiledTemplates: Record<string, Handlebars.TemplateDelegate> =
+    {};
 
   private registerHelpers(shouldLog: boolean = false): void {
     const log = (message: string) => {
@@ -38,13 +41,16 @@ export class HandlebarsService {
       return str.toUpperCase();
     });
 
-    log("Registering Handlebars helper: formatDate");
+    log("Registering Handlebars helper: formatDate"); // ...existing code...
     Handlebars.registerHelper(
       "formatDate",
       function (date: string, dateFormat: string) {
-        return format(date, dateFormat, { locale: fr });
+        const parsed = typeof date === "string" ? parseISO(date) : date;
+        if (!isValid(parsed)) return "";
+        return format(parsed, dateFormat, { locale: fr });
       },
     );
+    // ...existing code...
 
     log("Registering Handlebars helper: gt");
     Handlebars.registerHelper("gt", function (a: number, b: number) {
@@ -111,19 +117,41 @@ export class HandlebarsService {
     );
   }
 
-  public compileTemplate(template: string, data: Record<string, any>): string {
+  public compileTemplate(
+    template: string,
+    data: Record<string, any>,
+    id?: string,
+  ): string {
     // add time benchmarking
     const start = process.hrtime();
-    const compiledTemplate = Handlebars.compile(template, {
-      strict: true,
-      noEscape: false,
-    });
+
+    if (id && !this.preCompiledTemplates[id]) {
+      console.debug(`⌛ Compiling Handlebars template with id: ${id}`);
+      this.preCompiledTemplates[id] = Handlebars.compile(template, {
+        // strict: true,
+        noEscape: false,
+      });
+    }
+
+    const compiledTemplate = id
+      ? this.preCompiledTemplates[id]
+      : Handlebars.compile(template, {
+          // strict: true,
+          noEscape: false,
+        });
+
+    // const compiledTemplate = Handlebars.compile(template, {
+    //   // strict: true,
+    //   noEscape: false,
+    // });
+
     const end = process.hrtime(start);
     const [seconds, nanoseconds] = end;
     const timeInMs = (seconds * 1000 + nanoseconds / 1e6).toFixed(2);
+    const compiledOutput = compiledTemplate(data);
     console.debug(
-      `🛠️ Compiled Handlebars template in ${timeInMs}ms (${parseInt(timeInMs) / 1000}s)`,
+      `⚒️ Compiled Handlebars template in ${timeInMs}ms (${parseInt(timeInMs) / 1000}s)`,
     );
-    return compiledTemplate(data);
+    return compiledOutput;
   }
 }

@@ -138,7 +138,11 @@ export const generatePdf = async (
   }
 
   try {
-    const template = handlebarsService.compileTemplate(templateContent, data);
+    const template = handlebarsService.compileTemplate(
+      templateContent,
+      data,
+      templateId,
+    );
 
     // Set proper headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
