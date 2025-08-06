@@ -3,7 +3,13 @@ import { resolve } from "path";
 import { readdir, writeFile, unlink } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
-import { TemplateDeleteRequest, TemplateUploadRequest } from "@/types/index.js";
+import {
+  TemplateDeleteRequest,
+  TemplateUploadRequest,
+  BulkTemplateUploadRequest,
+  BulkTemplateUploadResponse,
+  TemplateUploadResult,
+} from "@/types/index.js";
 
 const templatesDir = process.env.TEMPLATES_DIR || path.resolve("templates");
 
@@ -115,6 +121,153 @@ export const deleteTemplate = async (
     res.status(500).json({
       status: "error",
       message: "Failed to delete template",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Helper function to extract template name from filename
+ * Removes .hbs or .handlebars extension and sanitizes the name
+ */
+const extractTemplateName = (filename: string): string => {
+  return filename
+    .replace(/\.(hbs|handlebars)$/i, "")
+    .replace(/[^a-zA-Z0-9\-_]/g, "-")
+    .toLowerCase();
+};
+
+/**
+ * Uploads multiple template files to the templates directory
+ * Processes each file individually and returns detailed results
+ *
+ * @param req - Extended Express Request object with multiple file data
+ * @param res - Express Response object
+ */
+export const uploadBulkTemplates = async (
+  req: BulkTemplateUploadRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    // Handle different types of files property from multer
+    let files: Express.Multer.File[] = [];
+
+    if (Array.isArray(req.files)) {
+      files = req.files;
+    } else if (req.files && typeof req.files === "object") {
+      // If files is an object, flatten all arrays
+      files = Object.values(req.files).flat();
+    }
+
+    if (files.length === 0) {
+      res.status(400).json({
+        status: "error",
+        message: "No template files provided",
+      });
+      return;
+    }
+
+    const { overwrite } = req.body;
+    const enableOverwrite = overwrite === "true";
+    const results: TemplateUploadResult[] = [];
+
+    let successCount = 0;
+    let errorCount = 0;
+    let skippedCount = 0;
+
+    // Process each file individually
+    for (const file of files) {
+      const templateName = extractTemplateName(file.originalname);
+      const templatePath = resolve(templatesDir, `${templateName}.hbs`);
+      const fileExists = existsSync(templatePath);
+
+      try {
+        // Check if template exists and overwrite is not enabled
+        if (fileExists && !enableOverwrite) {
+          results.push({
+            originalName: file.originalname,
+            templateName,
+            status: "skipped",
+            message: "Template already exists. Enable overwrite to replace it.",
+          });
+          skippedCount++;
+          continue;
+        }
+
+        // Validate file content (basic check)
+        const content = file.buffer.toString("utf-8");
+        if (content.trim().length === 0) {
+          results.push({
+            originalName: file.originalname,
+            templateName,
+            status: "error",
+            message: "Template file is empty",
+            error: "Empty file content",
+          });
+          errorCount++;
+          continue;
+        }
+
+        // Write the file
+        await writeFile(templatePath, content);
+
+        results.push({
+          originalName: file.originalname,
+          templateName,
+          status: "success",
+          message: fileExists
+            ? "Template updated successfully"
+            : "Template created successfully",
+        });
+        successCount++;
+      } catch (fileError) {
+        results.push({
+          originalName: file.originalname,
+          templateName,
+          status: "error",
+          message: "Failed to save template",
+          error:
+            fileError instanceof Error ? fileError.message : String(fileError),
+        });
+        errorCount++;
+      }
+    }
+
+    // Determine overall status
+    let overallStatus: "success" | "partial" | "error";
+    let message: string;
+
+    if (errorCount === 0 && skippedCount === 0) {
+      overallStatus = "success";
+      message = `All ${successCount} templates uploaded successfully`;
+    } else if (successCount > 0) {
+      overallStatus = "partial";
+      message = `Bulk upload completed: ${successCount} successful, ${errorCount} errors, ${skippedCount} skipped`;
+    } else {
+      overallStatus = "error";
+      message = `Bulk upload failed: ${errorCount} errors, ${skippedCount} skipped`;
+    }
+
+    const response: BulkTemplateUploadResponse = {
+      status: overallStatus,
+      message,
+      totalFiles: files.length,
+      successCount,
+      errorCount,
+      skippedCount,
+      results,
+    };
+
+    // Set appropriate HTTP status code
+    const httpStatus =
+      overallStatus === "error" ? 500 : overallStatus === "partial" ? 207 : 201;
+
+    res.status(httpStatus).json(response);
+  } catch (error) {
+    console.error("Error in bulk template upload:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to process bulk template upload",
       error: error instanceof Error ? error.message : String(error),
     });
   }

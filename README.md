@@ -11,6 +11,7 @@ A high-performance (well, still gotta benchmark first), RESTful Express.js "micr
 - **Raw HTML to PDF conversion** with optional template compilation
 - **Built-in Tailwind CSS support** for modern styling (v4 by default)
 - **File upload management** with drag-and-drop template interface
+- **Bulk template upload** supporting up to 20 files simultaneously with detailed error reporting
 - **Type-safe TypeScript implementation** with comprehensive error handling
 - **Playwright-powered rendering** for consistent cross-platform PDF output
 - **Docker-ready containerization** for scalable deployment
@@ -150,11 +151,12 @@ TEMPLATES_DIR=/app/custom-templates
 
 ### Template Management Endpoints
 
-| Endpoint                | Method | Description                  | Request Body                          | Response           |
-| ----------------------- | ------ | ---------------------------- | ------------------------------------- | ------------------ |
-| `/api/templates/list`   | GET    | List all available templates | -                                     | `application/json` |
-| `/api/templates/upload` | POST   | Upload a new template        | multipart/form-data (file + metadata) | `application/json` |
-| `/api/templates/delete` | DELETE | Delete an existing template  | JSON with template name               | `application/json` |
+| Endpoint                     | Method | Description                  | Request Body                           | Response           |
+| ---------------------------- | ------ | ---------------------------- | -------------------------------------- | ------------------ |
+| `/api/templates/list`        | GET    | List all available templates | -                                      | `application/json` |
+| `/api/templates/upload`      | POST   | Upload a new template        | multipart/form-data (file + metadata)  | `application/json` |
+| `/api/templates/upload/bulk` | POST   | Upload multiple templates    | multipart/form-data (files + metadata) | `application/json` |
+| `/api/templates/delete`      | DELETE | Delete an existing template  | JSON with template name                | `application/json` |
 
 ### Request Body Examples
 
@@ -177,6 +179,64 @@ pageToken: "auth-token"      // Security token for authentication
   "pageToken": "auth-token" // Security token for authentication
 }
 ```
+
+#### `POST /api/templates/upload/bulk` - Upload Multiple Templates
+
+This endpoint accepts `multipart/form-data` for uploading up to 20 templates simultaneously:
+
+```
+templateFiles: [Multiple Binary Files]  // .hbs or .handlebars files (max 20 files, 2MB each)
+overwrite: "true"                       // Optional boolean to allow overwriting existing templates
+pageToken: "auth-token"                 // Security token for authentication
+```
+
+**Response Format:**
+
+```json
+{
+  "status": "success",
+  "message": "All 3 templates uploaded successfully",
+  "totalFiles": 3,
+  "successCount": 3,
+  "errorCount": 0,
+  "skippedCount": 0,
+  "results": [
+    {
+      "originalName": "invoice.hbs",
+      "templateName": "invoice",
+      "status": "success",
+      "message": "Template created successfully"
+    },
+    {
+      "originalName": "receipt.hbs",
+      "templateName": "receipt",
+      "status": "success",
+      "message": "Template created successfully"
+    },
+    {
+      "originalName": "resume.hbs",
+      "templateName": "resume",
+      "status": "success",
+      "message": "Template created successfully"
+    }
+  ]
+}
+```
+
+**Status Codes:**
+
+- `201`: All templates uploaded successfully
+- `207`: Partial success (some succeeded, some failed/skipped)
+- `400`: No files provided or invalid request
+- `500`: Server error or all uploads failed
+
+**Template Name Generation:**
+
+- Template names are auto-generated from filenames
+- Extensions (`.hbs`, `.handlebars`) are removed
+- Special characters are replaced with hyphens
+- Names are converted to lowercase
+- Example: `My-Invoice Template.hbs` → `my-invoice-template`
 
 #### `POST /api/documents` - Generate PDF from Template
 
@@ -443,6 +503,8 @@ The project includes several utility scripts in the `scripts/` directory:
 - **build-fix.js**: Post-build script that adds path aliasing configuration
 - **benchmark.py**: Python-based benchmarking tool for performance testing
 - **templates-setup.js**: Script for initializing template directory structure
+- **test-bulk-upload.js**: Node.js script for testing bulk template upload functionality
+- **test-bulk-upload.ps1**: PowerShell script for testing bulk upload with detailed reporting
 - **run-benchmark.bat**: Batch file for running benchmarks on Windows
 
 ## License
@@ -468,9 +530,10 @@ For major changes, please open an issue first to discuss proposed changes.
 The service includes a web-based template management interface (`public/index.html`) that allows users to:
 
 1. **Upload new Handlebars templates** with drag-and-drop support
-2. **View existing templates** in a clean, organized list
-3. **Delete templates** when no longer needed
-4. **Overwrite protection** with optional toggle for existing templates
+2. **Bulk upload multiple templates** simultaneously (up to 20 files)
+3. **View existing templates** in a clean, organized list
+4. **Delete templates** when no longer needed
+5. **Overwrite protection** with optional toggle for existing templates
 
 ### Security Features
 
@@ -486,10 +549,23 @@ The template management interface includes security features:
 
 1. **Access the UI**: Navigate to `http://localhost:7070` in your browser
 2. **Upload Template**:
-   - Enter a template name (without extension)
-   - Select a `.hbs` file or drag and drop
-   - Toggle overwrite protection if needed
+   - **Single Upload**: Enter a template name (without extension), select a `.hbs` file or drag and drop, toggle overwrite protection if needed
+   - **Bulk Upload**: Select multiple `.hbs` files simultaneously (up to 20 files, 2MB each)
 3. **View Templates**: All existing templates are displayed automatically
 4. **Delete Template**: Click the delete button next to any template
 
 When running in Docker, templates are persisted through volume mapping, ensuring they remain available after container restarts.
+
+## Bulk Template Upload
+
+For detailed information about the bulk template upload functionality, including advanced usage examples, error handling, and testing scripts, see the [Bulk Upload Documentation](docs/BULK-UPLOAD.md).
+
+**Quick Example:**
+
+```bash
+# Test bulk upload with PowerShell
+powershell -ExecutionPolicy Bypass -File scripts/test-bulk-upload.ps1
+
+# Or create test templates and upload manually
+node scripts/test-bulk-upload.js
+```

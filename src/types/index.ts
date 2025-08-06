@@ -74,6 +74,55 @@ export interface TemplateDeleteRequest extends Request {
   };
 }
 
+/**
+ * Extended Request interface for bulk template upload
+ */
+export interface BulkTemplateUploadRequest extends Request {
+  files?:
+    | Express.Multer.File[]
+    | { [fieldname: string]: Express.Multer.File[] };
+  body: {
+    overwrite: string;
+    pageToken: string;
+  };
+}
+
+/**
+ * Result of a single template upload operation
+ */
+export interface TemplateUploadResult {
+  /** Original filename of the uploaded template */
+  originalName: string;
+  /** Template name/ID that was assigned */
+  templateName: string;
+  /** Upload status */
+  status: "success" | "error" | "skipped";
+  /** Status message */
+  message: string;
+  /** Error details if status is "error" */
+  error?: string;
+}
+
+/**
+ * Response for bulk template upload operations
+ */
+export interface BulkTemplateUploadResponse {
+  /** Overall operation status */
+  status: "success" | "partial" | "error";
+  /** Summary message */
+  message: string;
+  /** Total number of files processed */
+  totalFiles: number;
+  /** Number of successful uploads */
+  successCount: number;
+  /** Number of files with errors */
+  errorCount: number;
+  /** Number of files skipped (already exist, overwrite disabled) */
+  skippedCount: number;
+  /** Detailed results for each file */
+  results: TemplateUploadResult[];
+}
+
 export type TemplateRenderOptions = Partial<
   Parameters<Page["setContent"]>[1]
 > & {

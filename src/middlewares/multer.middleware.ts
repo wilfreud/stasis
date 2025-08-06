@@ -36,3 +36,16 @@ export const upload = multer({
     fileSize: 2 * 1024 * 1024, // 2MB max file size
   },
 });
+
+/**
+ * Multer instance configured for bulk Handlebars template uploads
+ * Supports up to 20 files simultaneously
+ */
+export const uploadBulk = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB max file size per file
+    files: 20, // Maximum 20 files per request
+  },
+});

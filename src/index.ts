@@ -3,6 +3,7 @@ import path from "path";
 import BrowserManagerService from "./services/playwright.service.js";
 import benchmarkMiddleware from "./middlewares/benchmark.middleware.js";
 import { upload } from "./middlewares/multer.middleware.js";
+import { uploadBulk } from "./middlewares/multer.middleware.js";
 import {
   generatePdf,
   generatePdfFromRawHtml,
@@ -12,6 +13,7 @@ import {
 import {
   listTemplates,
   uploadTemplate,
+  uploadBulkTemplates,
   deleteTemplate,
 } from "./controllers/template.controller.js";
 
@@ -43,6 +45,11 @@ app.post(
   "/api/templates/upload",
   upload.single("templateFile"),
   uploadTemplate,
+);
+app.post(
+  "/api/templates/upload/bulk",
+  uploadBulk.array("templateFiles", 20),
+  uploadBulkTemplates,
 );
 app.delete("/api/templates/delete", deleteTemplate);
 
