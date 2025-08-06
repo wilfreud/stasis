@@ -1,126 +1,122 @@
-# GitHub Copilot Instructions
+# Stasis - AI Coding Agent Instructions
 
 ## Project Overview
 
-Express.js service in TypeScript for HTML-to-PDF conversion using Playwright and Handlebars templating.
+Stasis is a TypeScript PDF generation microservice using Express.js + Playwright + Handlebars. It follows a modular service-oriented architecture with strict separation between controllers (HTTP), services (business logic), and middlewares.
 
-## Core Principles
+## Architecture Patterns
 
-- Provide **partial code snippets** to guide learning, not complete solutions
-- Prioritize clean architecture and maintainable code
-- Focus on TypeScript best practices and type safety
+### Service Singleton Pattern
 
-## Language & Typing Standards
+- `BrowserManagerService` maintains a single Playwright browser instance across requests
+- `HandlebarsService` pre-compiles templates and registers custom helpers (formatDate, capitalize, etc.)
+- Services are instantiated once in controllers and reused across requests
 
-- Use **TypeScript exclusively** – no plain JavaScript
-- Implement **full type safety** with interfaces/types for all data structures
-- **Never use `any`** – always provide proper typing
-- Create interfaces for request/response objects, service parameters, and configuration
+### ES Modules + Path Aliasing
 
-## Architecture Guidelines
+- Project uses `"type": "module"` - all imports must use `.js` extensions even for `.ts` files
+- Path aliasing via `@/` prefix maps to `src/` (configured in tsconfig)
+- Build script (`scripts/build-fix.js`) copies package.json to dist/ with imports configuration
 
-```
-src/
-├── controllers/     # HTTP request handling only
-├── services/        # Business logic and PDF generation
-├── utils/           # Helper functions and shared utilities
-└── types/           # Type definitions and interfaces
-```
+### TypeScript Interface Patterns
 
-## Code Quality Standards
+- All request/response types extend Express interfaces (see `src/types/index.ts`)
+- File upload requests use Multer's union types requiring type guards
+- Example: `BulkTemplateUploadRequest.files` can be array or object
 
-- Write **concise, readable code** with meaningful variable and function names
-- Use **small, single-responsibility functions**
-- Keep controllers thin – delegate business logic to services
-- Implement lightweight dependency injection where practical
-- Use `async/await` for all asynchronous operations
-- Follow REST conventions for API endpoints
+## Critical Workflows
 
-## Error Handling Patterns
+### Development
 
-```typescript
-// Always wrap async operations in try/catch
-try {
-  const result = await service.generatePdf(data);
-  return res.json(result);
-} catch (error) {
-  return res.status(500).json({
-    error: "PDF generation failed",
-    details: error.message,
-  });
-}
+```bash
+pnpm dev        # tsx --watch (hot reload)
+pnpm test       # vitest run (unit tests in *.test.ts files)
+pnpm format     # prettier on src/**/*.ts
 ```
 
-## Required Dependencies
+### Build Process
 
-- **Framework**: Express.js with TypeScript
-- **PDF Generation**: Playwright (`playwright`)
-- **Templating**: Handlebars (`hbs`)
-  <!-- - **Validation**: Zod for request validation -->
-  <!-- - **Testing**: Jest with TypeScript support -->
-- **Code Quality**: ESLint + Prettier
+1. `pnpm build` runs TypeScript compilation + `build-fix.js`
+2. Build script adds path import mappings to `dist/package.json`
+3. Production uses `node dist/index.js` (no tsx)
 
-## Playwright Guidelines
+### Docker Deployment
 
-- Always close browser instances in `finally` blocks
-- Use `page.pdf()` with proper options for consistent output
-- Include brief explanatory comments for Playwright methods
-- Handle browser launch failures gracefully
+- Multi-stage build using `mcr.microsoft.com/playwright:v1.52.0` base
+- Templates persist via Docker volumes at `/app/templates`
+- Playwright browsers pre-installed in container
 
-## Handlebars Integration
+## File Organization Conventions
 
-- Support both Handlebars templates and raw HTML input
-- Compile templates once and reuse for performance
-- Validate template data before rendering
+### Controllers (`src/controllers/`)
 
-## Documentation Requirements
+- HTTP request/response handling only
+- Import services as singletons: `const browserManagerService = new BrowserManagerService()`
+- Error responses follow `{ status: "error", message: string, error?: string }` format
 
-- Add **concise JSDoc** for all public functions and interfaces
-- Document function parameters, return types, and purpose
-- Avoid excessive inline comments – prioritize self-documenting code
-- Include usage examples for complex service methods
+### Services (`src/services/`)
 
-## Response Patterns
+- Pure business logic, no Express dependencies
+- `playwright.service.ts`: Browser lifecycle, PDF generation with options
+- `handlebars.service.ts`: Template compilation, helper registration
 
-When suggesting code:
+### Types (`src/types/`)
 
-1. **Provide partial implementations** that require developer completion
-2. **Include TODO comments** to guide next steps
-3. **Show interface/type definitions** before implementation
-4. **Suggest modular approaches** rather than monolithic solutions
+- All interfaces extend Express base types
+- Multer file handling requires union type guards
+- PDF options pass through to Playwright's `page.pdf()` method
 
-## Validation Strategy
+### Templates (`templates/`)
 
-```typescript
-// Use Zod schemas for request validation
-const PdfRequestSchema = z.object({
-  html: z.string().min(1),
-  options: z
-    .object({
-      format: z.enum(["A4", "Letter"]).optional(),
-      orientation: z.enum(["portrait", "landscape"]).optional(),
-    })
-    .optional(),
-});
-```
+- `.hbs` or `.handlebars` extensions supported
+- File naming convention: lowercase with hyphens (`thermal-receipt.hbs`)
+- Handlebars helpers available: `formatDate`, `capitalize`, `lowercase`, `uppercase`
 
-## Performance Considerations
+## API Patterns
 
-- Reuse browser instances when possible
-- Implement request timeouts
-- Add basic caching for repeated template compilations
-- Use streaming for large PDF responses
+### RESTful Endpoints
 
-## Learning Focus Areas
+- `/api/documents` - PDF generation from templates
+- `/api/templates/*` - Template CRUD operations
+- All POST endpoints expect JSON or multipart/form-data
 
-When providing suggestions, emphasize:
+### Request/Response Flow
 
-- TypeScript type system usage
-- Clean separation of concerns
-- Error handling best practices
-- Async/await patterns with Playwright
-- Template compilation and reuse strategies
+1. Middleware: benchmark timing (`benchmark.middleware.ts`)
+2. Controller: validation + service calls
+3. Service: business logic (template compilation, PDF rendering)
+4. Response: JSON metadata or PDF binary with proper headers
 
-## Commit Conventions
+### Bulk Operations
 
-- Use [conventional commit](https://www.conventionalcommits.org/) messages for all commits to enable automated changelog generation and maintain clear project history.
+- Template uploads support up to 20 files (configured in multer middleware)
+- Responses include detailed per-file results with status: `success|error|skipped`
+- Checksums endpoint returns SHA-256 hashes for template integrity
+
+## Project-Specific Conventions
+
+### Error Handling
+
+- Always wrap service calls in try/catch at controller level
+- Return consistent error format with HTTP status codes
+- Log errors to console with context
+
+### File Operations
+
+- Use `fs/promises` for async file operations
+- Templates directory configurable via `TEMPLATES_DIR` env var
+- File existence checks use `existsSync()` before operations
+
+### Testing Strategy
+
+- Unit tests co-located with services (`.test.ts` suffix)
+- Vitest config targets Node.js environment
+- Mock data available in `src/mockdata.ts`
+
+## Development Notes
+
+- PowerShell is the target shell environment (Windows-focused)
+- PNPM is the required package manager (not npm/yarn)
+- Playwright requires specific Chrome args for containerized environments
+- Template names auto-generated from filenames (sanitized, lowercase)
+- **ALWAYS UPDATE THE README.md IF IMPORTANT CHANGES ARE MADE, FINALIZED AND ACCEPTED**
