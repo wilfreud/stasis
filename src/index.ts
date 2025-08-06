@@ -15,6 +15,7 @@ import {
   uploadTemplate,
   uploadBulkTemplates,
   deleteTemplate,
+  downloadTemplate,
   getTemplateChecksums,
 } from "./controllers/template.controller.js";
 
@@ -43,6 +44,7 @@ app.get("/api/documents/test", testPdfGeneration); // Should ideally be a POST i
 // Template management endpoints
 app.get("/api/templates/list", listTemplates);
 app.get("/api/templates/checksums", getTemplateChecksums);
+app.get("/api/templates/download/:templateName", downloadTemplate);
 app.post(
   "/api/templates/upload",
   upload.single("templateFile"),

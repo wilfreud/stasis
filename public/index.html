@@ -270,17 +270,27 @@
               (template) => `
               <div class="flex justify-between items-center py-2 border-b border-gray-100">
                 <span class="font-medium">${template}</span>
-                <button 
-                  data-template="${template}"
-                  class="delete-btn text-xs text-white bg-red-500 hover:bg-red-600 py-1 px-2 rounded">
-                  Delete
-                </button>
+                <div class="flex gap-2">
+                  <button 
+                    data-template="${template}"
+                    class="download-btn text-xs text-white bg-blue-500 hover:bg-blue-600 py-1 px-2 rounded">
+                    Download
+                  </button>
+                  <button 
+                    data-template="${template}"
+                    class="delete-btn text-xs text-white bg-red-500 hover:bg-red-600 py-1 px-2 rounded">
+                    Delete
+                  </button>
+                </div>
               </div>
             `,
             )
             .join("");
 
-          // Add event listeners to delete buttons
+          // Add event listeners to download and delete buttons
+          document.querySelectorAll(".download-btn").forEach((btn) => {
+            btn.addEventListener("click", handleDownload);
+          });
           document.querySelectorAll(".delete-btn").forEach((btn) => {
             btn.addEventListener("click", handleDelete);
           });
@@ -288,6 +298,39 @@
           console.error("Failed to load templates:", error);
           document.getElementById("template-list").innerHTML =
             '<p class="text-red-500 text-sm">Failed to load templates</p>';
+        }
+      }
+
+      async function handleDownload(e) {
+        const template = e.target.dataset.template;
+
+        try {
+          showStatus(`Downloading ${template}...`, "info");
+
+          const response = await fetch(`/api/templates/download/${template}`);
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${template}.hbs`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showStatus(
+              `Template "${template}" downloaded successfully`,
+              "success",
+            );
+          } else {
+            const result = await response.json();
+            showStatus(result.message || "Download failed", "error");
+          }
+        } catch (error) {
+          console.error("Error downloading template:", error);
+          showStatus("Failed to download template", "error");
         }
       }
 

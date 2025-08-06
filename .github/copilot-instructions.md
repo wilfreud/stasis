@@ -77,7 +77,7 @@ pnpm format     # prettier on src/**/*.ts
 ### RESTful Endpoints
 
 - `/api/documents` - PDF generation from templates
-- `/api/templates/*` - Template CRUD operations
+- `/api/templates/*` - Template CRUD operations (list, upload, download, delete)
 - All POST endpoints expect JSON or multipart/form-data
 
 ### Request/Response Flow

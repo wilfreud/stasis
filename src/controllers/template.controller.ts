@@ -276,6 +276,48 @@ export const uploadBulkTemplates = async (
 };
 
 /**
+ * Downloads a template file from the templates directory
+ *
+ * @param req - Express Request object with template name parameter
+ * @param res - Express Response object
+ */
+export const downloadTemplate = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { templateName } = req.params;
+    const templatePath = resolve(templatesDir, `${templateName}.hbs`);
+
+    if (!existsSync(templatePath)) {
+      res.status(404).json({
+        status: "error",
+        message: "Template not found",
+      });
+      return;
+    }
+
+    const content = await readFile(templatePath, "utf-8");
+
+    // Set proper headers for file download
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${templateName}.hbs"`,
+    );
+
+    res.send(content);
+  } catch (error) {
+    console.error("Error downloading template:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to download template",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
  * Calculates SHA-256 checksums for all templates in the templates directory
  * Returns a map of template names to their checksums for integrity verification
  *

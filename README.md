@@ -10,7 +10,7 @@ A high-performance (well, still gotta benchmark first), RESTful Express.js "micr
 - **Template-based PDF generation** from Handlebars templates with dynamic data injection
 - **Raw HTML to PDF conversion** with optional template compilation
 - **Built-in Tailwind CSS support** for modern styling (v4 by default)
-- **File upload management** with drag-and-drop template interface
+- **File upload management** with drag-and-drop template interface and download capability
 - **Bulk template upload** supporting up to 20 files simultaneously with detailed error reporting
 - **Type-safe TypeScript implementation** with comprehensive error handling
 - **Playwright-powered rendering** for consistent cross-platform PDF output
@@ -151,13 +151,14 @@ TEMPLATES_DIR=/app/custom-templates
 
 ### Template Management Endpoints
 
-| Endpoint                     | Method | Description                        | Request Body                           | Response           |
-| ---------------------------- | ------ | ---------------------------------- | -------------------------------------- | ------------------ |
-| `/api/templates/list`        | GET    | List all available templates       | -                                      | `application/json` |
-| `/api/templates/checksums`   | GET    | Get SHA-256 checksums of templates | -                                      | `application/json` |
-| `/api/templates/upload`      | POST   | Upload a new template              | multipart/form-data (file + metadata)  | `application/json` |
-| `/api/templates/upload/bulk` | POST   | Upload multiple templates          | multipart/form-data (files + metadata) | `application/json` |
-| `/api/templates/delete`      | DELETE | Delete an existing template        | JSON with template name                | `application/json` |
+| Endpoint                                | Method | Description                        | Request Body                           | Response           |
+| --------------------------------------- | ------ | ---------------------------------- | -------------------------------------- | ------------------ |
+| `/api/templates/list`                   | GET    | List all available templates       | -                                      | `application/json` |
+| `/api/templates/checksums`              | GET    | Get SHA-256 checksums of templates | -                                      | `application/json` |
+| `/api/templates/download/:templateName` | GET    | Download a template file           | -                                      | `text/plain`       |
+| `/api/templates/upload`                 | POST   | Upload a new template              | multipart/form-data (file + metadata)  | `application/json` |
+| `/api/templates/upload/bulk`            | POST   | Upload multiple templates          | multipart/form-data (files + metadata) | `application/json` |
+| `/api/templates/delete`                 | DELETE | Delete an existing template        | JSON with template name                | `application/json` |
 
 ### Request Body Examples
 
@@ -180,6 +181,33 @@ pageToken: "auth-token"      // Security token for authentication
   "pageToken": "auth-token" // Security token for authentication
 }
 ```
+
+#### `GET /api/templates/download/:templateName` - Download a Template
+
+This endpoint allows you to download the source code of an existing template.
+
+**URL Parameters:**
+
+- `templateName`: The name of the template to download (without .hbs extension)
+
+**Response:**
+
+- Content-Type: `text/plain`
+- Content-Disposition: `attachment; filename="templateName.hbs"`
+- Body: The raw Handlebars template content
+
+**Example:**
+
+```bash
+curl -o invoice.hbs http://localhost:7070/api/templates/download/invoice
+```
+
+**Use Cases:**
+
+- **Backup templates** before making modifications
+- **Version control** - download templates for git tracking
+- **Template sharing** between environments
+- **Local editing** - download, edit locally, then re-upload
 
 #### `GET /api/templates/checksums` - Get Template Checksums
 
@@ -576,7 +604,8 @@ The template management interface includes security features:
    - **Single Upload**: Enter a template name (without extension), select a `.hbs` file or drag and drop, toggle overwrite protection if needed
    - **Bulk Upload**: Select multiple `.hbs` files simultaneously (up to 20 files, 2MB each)
 3. **View Templates**: All existing templates are displayed automatically
-4. **Delete Template**: Click the delete button next to any template
+4. **Download Template**: Click the blue "Download" button next to any template to save it locally
+5. **Delete Template**: Click the red "Delete" button next to any template to remove it
 
 When running in Docker, templates are persisted through volume mapping, ensuring they remain available after container restarts.
 
