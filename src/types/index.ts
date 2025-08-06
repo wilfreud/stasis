@@ -123,6 +123,14 @@ export interface BulkTemplateUploadResponse {
   results: TemplateUploadResult[];
 }
 
+/**
+ * Response for template checksums endpoint
+ */
+export interface TemplateChecksumsResponse {
+  /** Map of template names to their SHA-256 checksums */
+  [templateName: string]: string;
+}
+
 export type TemplateRenderOptions = Partial<
   Parameters<Page["setContent"]>[1]
 > & {

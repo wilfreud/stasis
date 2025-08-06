@@ -15,6 +15,7 @@ import {
   uploadTemplate,
   uploadBulkTemplates,
   deleteTemplate,
+  getTemplateChecksums,
 } from "./controllers/template.controller.js";
 
 // Create a new express application instance
@@ -41,6 +42,7 @@ app.get("/api/documents/test", testPdfGeneration); // Should ideally be a POST i
 
 // Template management endpoints
 app.get("/api/templates/list", listTemplates);
+app.get("/api/templates/checksums", getTemplateChecksums);
 app.post(
   "/api/templates/upload",
   upload.single("templateFile"),

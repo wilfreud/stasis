@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { resolve } from "path";
-import { readdir, writeFile, unlink } from "fs/promises";
+import { readdir, writeFile, unlink, readFile } from "fs/promises";
 import { existsSync } from "fs";
+import { createHash } from "crypto";
 import path from "path";
 import {
   TemplateDeleteRequest,
@@ -9,6 +10,7 @@ import {
   BulkTemplateUploadRequest,
   BulkTemplateUploadResponse,
   TemplateUploadResult,
+  TemplateChecksumsResponse,
 } from "@/types/index.js";
 
 const templatesDir = process.env.TEMPLATES_DIR || path.resolve("templates");
@@ -268,6 +270,56 @@ export const uploadBulkTemplates = async (
     res.status(500).json({
       status: "error",
       message: "Failed to process bulk template upload",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Calculates SHA-256 checksums for all templates in the templates directory
+ * Returns a map of template names to their checksums for integrity verification
+ *
+ * @param _req - Express Request object
+ * @param res - Express Response object
+ */
+export const getTemplateChecksums = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const files = await readdir(templatesDir);
+    const templateFiles = files.filter(
+      (file) => file.endsWith(".hbs") || file.endsWith(".handlebars"),
+    );
+
+    const checksums: TemplateChecksumsResponse = {};
+
+    // Process each template file
+    for (const file of templateFiles) {
+      try {
+        const filePath = resolve(templatesDir, file);
+        const content = await readFile(filePath, "utf-8");
+
+        // Calculate SHA-256 checksum
+        const hash = createHash("sha256");
+        hash.update(content, "utf-8");
+        const checksum = hash.digest("hex");
+
+        // Use template name (without extension) as key
+        const templateName = file.replace(/\.(hbs|handlebars)$/, "");
+        checksums[templateName] = checksum;
+      } catch (fileError) {
+        console.warn(`Failed to process template file ${file}:`, fileError);
+        // Continue processing other files even if one fails
+      }
+    }
+
+    res.json(checksums);
+  } catch (error) {
+    console.error("Error calculating template checksums:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to calculate template checksums",
       error: error instanceof Error ? error.message : String(error),
     });
   }

@@ -151,12 +151,13 @@ TEMPLATES_DIR=/app/custom-templates
 
 ### Template Management Endpoints
 
-| Endpoint                     | Method | Description                  | Request Body                           | Response           |
-| ---------------------------- | ------ | ---------------------------- | -------------------------------------- | ------------------ |
-| `/api/templates/list`        | GET    | List all available templates | -                                      | `application/json` |
-| `/api/templates/upload`      | POST   | Upload a new template        | multipart/form-data (file + metadata)  | `application/json` |
-| `/api/templates/upload/bulk` | POST   | Upload multiple templates    | multipart/form-data (files + metadata) | `application/json` |
-| `/api/templates/delete`      | DELETE | Delete an existing template  | JSON with template name                | `application/json` |
+| Endpoint                     | Method | Description                        | Request Body                           | Response           |
+| ---------------------------- | ------ | ---------------------------------- | -------------------------------------- | ------------------ |
+| `/api/templates/list`        | GET    | List all available templates       | -                                      | `application/json` |
+| `/api/templates/checksums`   | GET    | Get SHA-256 checksums of templates | -                                      | `application/json` |
+| `/api/templates/upload`      | POST   | Upload a new template              | multipart/form-data (file + metadata)  | `application/json` |
+| `/api/templates/upload/bulk` | POST   | Upload multiple templates          | multipart/form-data (files + metadata) | `application/json` |
+| `/api/templates/delete`      | DELETE | Delete an existing template        | JSON with template name                | `application/json` |
 
 ### Request Body Examples
 
@@ -179,6 +180,27 @@ pageToken: "auth-token"      // Security token for authentication
   "pageToken": "auth-token" // Security token for authentication
 }
 ```
+
+#### `GET /api/templates/checksums` - Get Template Checksums
+
+This endpoint returns SHA-256 checksums for all templates, useful for integrity verification and change detection.
+
+**Response Format:**
+
+```json
+{
+  "invoice": "ee422544d142278bfe3e1a307923d455f55b9fe3a7e35ad75ca74799e28f5dcc",
+  "receipt": "842cbc74d2bb5baa68adaea4781b82fa3d4af67cd0febe87bb59f2f35e1ffe7a",
+  "resume": "77905cade7e32d2dc495c3d9c4ebb403c3231ae96eaeb4b8362297d65cc085f7"
+}
+```
+
+**Use Cases:**
+
+- **Integrity Verification**: Detect if templates have been modified
+- **Synchronization**: Compare templates between environments
+- **Audit Trail**: Track template changes over time
+- **Automation**: Verify template consistency in CI/CD pipelines
 
 #### `POST /api/templates/upload/bulk` - Upload Multiple Templates
 
@@ -505,6 +527,7 @@ The project includes several utility scripts in the `scripts/` directory:
 - **templates-setup.js**: Script for initializing template directory structure
 - **test-bulk-upload.js**: Node.js script for testing bulk template upload functionality
 - **test-bulk-upload.ps1**: PowerShell script for testing bulk upload with detailed reporting
+- **test-checksums.js**: Node.js script for testing template checksum functionality
 - **run-benchmark.bat**: Batch file for running benchmarks on Windows
 
 ## License
@@ -531,9 +554,10 @@ The service includes a web-based template management interface (`public/index.ht
 
 1. **Upload new Handlebars templates** with drag-and-drop support
 2. **Bulk upload multiple templates** simultaneously (up to 20 files)
-3. **View existing templates** in a clean, organized list
-4. **Delete templates** when no longer needed
-5. **Overwrite protection** with optional toggle for existing templates
+3. **Calculate template checksums** for integrity verification and change detection
+4. **View existing templates** in a clean, organized list
+5. **Delete templates** when no longer needed
+6. **Overwrite protection** with optional toggle for existing templates
 
 ### Security Features
 
@@ -562,10 +586,19 @@ For detailed information about the bulk template upload functionality, including
 
 **Quick Example:**
 
+````bash
+**Quick Example:**
 ```bash
 # Test bulk upload with PowerShell
 powershell -ExecutionPolicy Bypass -File scripts/test-bulk-upload.ps1
 
+# Test template checksums
+node scripts/test-checksums.js
+
 # Or create test templates and upload manually
 node scripts/test-bulk-upload.js
+````
+
+```
+
 ```
